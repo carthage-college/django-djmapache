@@ -1,0 +1,10 @@
+Django==2.2.4
+django-bootstrap4==1.0.1
+django-loginas==0.3.6
+mysqlclient==1.4.4
+python-ldap==3.2.0
+pyodbc==4.0.27
+openpyxl==2.6.3
+requests==2.22.0
+pycryptodome==3.9.0
+python-memcached==1.59
