@@ -2,7 +2,7 @@
 
 import os, sys
 # env
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'djimix.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'djmapache.settings.shell')
 
 # required if using django models
 import django
@@ -15,7 +15,7 @@ import pyodbc
 import argparse
 import logging
 
-logger = logging.getLogger('djimix')
+logger = logging.getLogger('djmapache')
 
 # set up command-line options
 desc = """
