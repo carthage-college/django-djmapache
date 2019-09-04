@@ -72,12 +72,10 @@ INSTALLED_APPS = [
     'django.contrib.sites',
     'django.contrib.staticfiles',
     'djmapache.core',
-    'djmapache.dashboard',
     # needed for template tags
     'djtools',
     # third party apps
     'loginas',
-    'taggit'
 ]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
