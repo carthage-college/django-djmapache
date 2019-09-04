@@ -43,20 +43,56 @@ parser.add_argument(
 
 def main():
     '''
-    main function
+    main function:
+
+    Last Name
+    First Name
+    Preferred (Nick) Name
+    Previous Last Name
+    Carthage Email
+    Carthage ID
+    User Type
+
     '''
 
-    sql = """
+    sql = '''
         SELECT
-            lastname, firstname, username
+            provisioning_vw.lastname, provisioning_vw.firstname,
+            TRIM(aname_rec.line1) as alt_name,
+            TRIM(NVL(maiden.lastname,"")) AS birth_last_name,
+            provisioning_vw.username, provisioning_vw.id AS cid,
         FROM
             provisioning_vw
+        LEFT JOIN (
+            SELECT
+                prim_id, MAX(active_date) active_date
+            FROM
+                addree_rec
+            WHERE
+                style = "M"
+            GROUP BY prim_id
+            )
+            prevmap
+        ON
+            provisioning_vw.id = prevmap.prim_id
+        LEFT JOIN
+            addree_rec maiden
+        ON
+            maiden.prim_id = prevmap.prim_id
+        AND
+            maiden.active_date = prevmap.active_date
+        AND
+            maiden.style = "M"
+        LEFT JOIN
+            aa_rec AS aname_rec
+        ON
+            (provisioning_vw.id = aname_rec.id AND aname_rec.aa = "ANDR")
         WHERE
-            {} is not null
+            provisioning_vw.{} is not null
         ORDER BY
-            lastname, firstname
+            provisioning_vw.lastname, provisioning_vw.firstname
         LIMIT 10
-    """.format(who)
+    '''.format(who)
 
     if test:
         print("sql = {}".format(sql))
@@ -67,24 +103,16 @@ def main():
         objects = cursor.execute(sql)
         peeps = []
         for obj in objects:
-            gn = obj[1]
-            sn = obj[0]
-            un = obj[2]
             row = {
-                'lastname': sn, 'firstname': gn,
-                'email': '{}@carthage.edu'.format(un)
+                'last_name': obj.lastname, 'first_name': obj.firstname,
+                'preferred_name': obj.preferred_name,
+                'birth_last_name': obj.birth_last_name,
+                'email': '{}@carthage.edu'.format(obj.username),
+                'cid': obj.cid, 'user_type': who
             }
-            #row = {
-                #'lastname': obj[0], 'firstname': obj[1],
-                #'email': '{}@carthage.edu'.format(obj[2])
-            #}
             peeps.append(row)
-            #print(row['lastname'])
-            #print(obj[2],obj[1],obj[d])
-            #print(gn,sn,un)
         for p in  peeps:
-            for n,v in p.items():
-                print(n,v)
+            print(p)
 
 
 if __name__ == '__main__':
