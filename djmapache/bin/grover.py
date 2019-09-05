@@ -41,10 +41,21 @@ parser.add_argument(
 )
 
 
+def _whoareyou(mail,cid,fn,sn,wtype,tag,pn,bn,yr):
+    who = None
+    if wtype == 'faculty' or wtype == 'staff':
+        who = f'{mail}|{cid}|{fn}|{sn}|{wtype}|{tag}|{pn}|{bn}'
+    elif wtype == 'student':
+        who = f'{mail}|{cid}|{fn}|{sn}|{wtype}|{tag}|{pn}|{bn}|{yr}'
+    return who
+
+
 def main():
     '''
-    main function:
+    CSV headers:
+    Email|Database Key|First Name|Last Name|User Type|User Tags|etc...
 
+    User data:
     Last Name
     First Name
     Preferred (Nick) Name
@@ -52,17 +63,33 @@ def main():
     Carthage Email
     Carthage ID
     User Type
-
     '''
+
+    grad_yr_field = ''
+    grad_yr_join = ''
+    grad_yr_where = ''
+    if who == 'student':
+        grad_yr_field = 'prog_enr_rec.plan_grad_yr,'
+        grad_yr_join = '''
+            LEFT JOIN
+                prog_enr_rec
+            ON
+                provisioning_vw.id = prog_enr_rec.id
+        '''
+        grad_yr_where = '''
+            AND prog_enr_rec.lv_date is null AND prog_enr_rec.plan_grad_yr != 0
+        '''
 
     sql = '''
         SELECT
             provisioning_vw.lastname, provisioning_vw.firstname,
             TRIM(aname_rec.line1) as alt_name,
             TRIM(NVL(maiden.lastname,"")) AS birth_last_name,
-            provisioning_vw.username, provisioning_vw.id AS cid,
+            provisioning_vw.username, {}
+            provisioning_vw.id AS cid
         FROM
             provisioning_vw
+        {}
         LEFT JOIN (
             SELECT
                 prim_id, MAX(active_date) active_date
@@ -78,9 +105,9 @@ def main():
         LEFT JOIN
             addree_rec maiden
         ON
-            maiden.prim_id = prevmap.prim_id
+            prevmap.prim_id = maiden.prim_id
         AND
-            maiden.active_date = prevmap.active_date
+            prevmap.active_date = maiden.active_date
         AND
             maiden.style = "M"
         LEFT JOIN
@@ -89,31 +116,31 @@ def main():
             (provisioning_vw.id = aname_rec.id AND aname_rec.aa = "ANDR")
         WHERE
             provisioning_vw.{} is not null
+        {}
         ORDER BY
             provisioning_vw.lastname, provisioning_vw.firstname
-        LIMIT 10
-    '''.format(who)
+    '''.format(grad_yr_field, grad_yr_join, who, grad_yr_where)
 
     if test:
         print("sql = {}".format(sql))
         logger.debug("sql = {}".format(sql))
-    else:
-        connection = get_connection()
-        cursor = connection.cursor()
-        objects = cursor.execute(sql)
-        peeps = []
-        for obj in objects:
-            row = {
-                'last_name': obj.lastname, 'first_name': obj.firstname,
-                'preferred_name': obj.preferred_name,
-                'birth_last_name': obj.birth_last_name,
-                'email': '{}@carthage.edu'.format(obj.username),
-                'cid': obj.cid, 'user_type': who
-            }
-            peeps.append(row)
-        for p in  peeps:
-            print(p)
-
+    connection = get_connection()
+    cursor = connection.cursor()
+    objects = cursor.execute(sql)
+    peeps = []
+    for o,obj in enumerate(objects):
+        grad_yr = None
+        if who == 'student':
+            grad_yr = obj.plan_grad_yr
+        row = _whoareyou(
+            '{}@carthage.edu'.format(obj.username),obj.cid,obj.firstname,
+            obj.lastname,who,'Soft Launch {}'.format(who.capitalize()),
+            obj.alt_name,obj.birth_last_name,grad_yr
+        )
+        if test:
+            print('{}) {}'.format(o,row))
+        else:
+            print('{}'.format(row))
 
 if __name__ == '__main__':
     args = parser.parse_args()
