@@ -9,9 +9,11 @@ import django
 django.setup()
 
 from django.conf import settings
+
+from djmapache.sql.grover import ALUMNI, FACSTAFF_STUDENT
+
 from djimix.core.utils import get_connection
 
-import pyodbc
 import argparse
 import logging
 
@@ -41,12 +43,14 @@ parser.add_argument(
 )
 
 
-def _whoareyou(mail,cid,fn,sn,wtype,tag,pn,bn,yr):
+def _whoareyou(mail,cid,fn,sn,wtype,tag,pn,bn,ayr=None,gyr=None,syr=None):
     who = None
     if wtype == 'faculty' or wtype == 'staff':
         who = f'{mail}|{cid}|{fn}|{sn}|{wtype}|{tag}|{pn}|{bn}'
     elif wtype == 'student':
-        who = f'{mail}|{cid}|{fn}|{sn}|{wtype}|{tag}|{pn}|{bn}|{yr}'
+        who = f'{mail}|{cid}|{fn}|{sn}|{wtype}|{tag}|{pn}|{bn}|{ayr}'
+    elif wtype == 'alumni':
+        who = f'{mail}|{cid}|{fn}|{sn}|{wtype}|{tag}|{pn}|{bn}|{ayr}|{gyr}|{syr}'
     return who
 
 
@@ -65,78 +69,57 @@ def main():
     User Type
     '''
 
-    grad_yr_field = ''
-    grad_yr_join = ''
-    grad_yr_where = ''
-    if who == 'student':
-        grad_yr_field = 'prog_enr_rec.plan_grad_yr,'
-        grad_yr_join = '''
-            LEFT JOIN
-                prog_enr_rec
-            ON
-                provisioning_vw.id = prog_enr_rec.id
-        '''
-        grad_yr_where = '''
-            AND prog_enr_rec.lv_date is null AND prog_enr_rec.plan_grad_yr != 0
-        '''
-
-    sql = '''
-        SELECT
-            provisioning_vw.lastname, provisioning_vw.firstname,
-            TRIM(aname_rec.line1) as alt_name,
-            TRIM(NVL(maiden.lastname,"")) AS birth_last_name,
-            provisioning_vw.username, {}
-            provisioning_vw.id AS cid
-        FROM
-            provisioning_vw
-        {}
-        LEFT JOIN (
-            SELECT
-                prim_id, MAX(active_date) active_date
-            FROM
-                addree_rec
-            WHERE
-                style = "M"
-            GROUP BY prim_id
-            )
-            prevmap
-        ON
-            provisioning_vw.id = prevmap.prim_id
-        LEFT JOIN
-            addree_rec maiden
-        ON
-            prevmap.prim_id = maiden.prim_id
-        AND
-            prevmap.active_date = maiden.active_date
-        AND
-            maiden.style = "M"
-        LEFT JOIN
-            aa_rec AS aname_rec
-        ON
-            (provisioning_vw.id = aname_rec.id AND aname_rec.aa = "ANDR")
-        WHERE
-            provisioning_vw.{} is not null
-        {}
-        ORDER BY
-            provisioning_vw.lastname, provisioning_vw.firstname
-    '''.format(grad_yr_field, grad_yr_join, who, grad_yr_where)
+    if who == 'facstaff' or who == 'student':
+        grad_yr_field = ''
+        grad_yr_join = ''
+        grad_yr_where = ''
+        if who == 'student':
+            grad_yr_field = 'prog_enr_rec.plan_grad_yr,'
+            grad_yr_join = '''
+                LEFT JOIN
+                    prog_enr_rec
+                ON
+                    provisioning_vw.id = prog_enr_rec.id
+            '''
+            grad_yr_where = '''
+                AND prog_enr_rec.lv_date is null AND prog_enr_rec.plan_grad_yr != 0
+            '''
+        sql = FACSTAFF_STUDENT(grad_yr_field, grad_yr_join, who, grad_yr_where)
+        headers = "Email|Database Key|First Name|Last Name|User Type|User Tags"
+        if who == 'student':
+            headers += "|Anticipated Grad Year"
+    elif who == 'alumni':
+        sql = ALUMNI
+        headers = "Email|Database Key|First Name|Last Name|User Type|User Tags|Graduation Year|social class year"
+    else:
+        print("who must be: 'facstaff', 'student', or 'alumni'\n")
+        exit(-1)
 
     if test:
         print("sql = {}".format(sql))
         logger.debug("sql = {}".format(sql))
+
     connection = get_connection()
     cursor = connection.cursor()
     objects = cursor.execute(sql)
+
     peeps = []
     for o,obj in enumerate(objects):
-        grad_yr = None
-        if who == 'student':
-            grad_yr = obj.plan_grad_yr
-        row = _whoareyou(
-            '{}@carthage.edu'.format(obj.username),obj.cid,obj.firstname,
-            obj.lastname,who,'Soft Launch {}'.format(who.capitalize()),
-            obj.alt_name,obj.birth_last_name,grad_yr
-        )
+        ayr = None
+        if who == 'alumni':
+            row = _whoareyou(
+                obj.email,obj.cid,obj.firstname,obj.lastname,
+                who,'Soft Launch {}'.format(who.capitalize()),
+                obj.alt_name,obj.birth_last_name,ayr,obj.grad_yr,obj.soc_yr
+            )
+        else:
+            if who == 'student':
+                ayr = obj.plan_grad_yr
+            row = _whoareyou(
+                '{}@carthage.edu'.format(obj.username),obj.cid,obj.firstname,
+                obj.lastname,who,'Soft Launch {}'.format(who.capitalize()),
+                obj.alt_name,obj.birth_last_name,ayr
+            )
         if test:
             print('{}) {}'.format(o,row))
         else:
