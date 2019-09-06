@@ -47,7 +47,8 @@ SELECT DISTINCT
     TRIM(ids.lastname) AS lastname,
     TRIM(ids.suffix) AS suffix,
     TRIM(INITCAP(ids.title)) AS prefix,
-    TRIM(NVL(email.line1,"")) AS email,
+    TRIM(NVL(email1.line1,"")) AS email1,
+    TRIM(NVL(email2.line1,"")) AS email2,
     TRIM(NVL(maiden.lastname,"")) AS birth_last_name,
     CASE
         WHEN TRIM(progs.deg) IN ("BA","BS")
@@ -79,14 +80,17 @@ FROM
                             AND maiden.active_date  = prevmap.active_date
                             AND maiden.style        = "M"
     LEFT JOIN
-        aa_rec email        ON  ids.id              = email.id
-                            AND email.aa            = "EML2"
+        aa_rec email1        ON  ids.id              = email1.id
+                            AND email1.aa            = "EML1"
+    LEFT JOIN
+        aa_rec email2        ON  ids.id              = email2.id
+                            AND email2.aa            = "EML2"
                             AND TODAY
                                 BETWEEN
-                                    email.beg_date
+                                    email2.beg_date
                                 AND
                                     NVL(
-                                        email.end_date,
+                                        email2.end_date,
                                         TODAY
                                     )
     LEFT JOIN
@@ -98,6 +102,4 @@ FROM
         conc_table conc2    ON  progs.conc2     = conc2.conc
 WHERE
     NVL(ids.decsd, "N") = "N"
-AND
-    email.line1 <> ""
 '''

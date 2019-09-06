@@ -43,14 +43,19 @@ parser.add_argument(
 )
 
 
-def _whoareyou(mail,cid,fn,sn,wtype,tag,pn,bn,ayr=None,gyr=None,syr=None):
+def _whoareyou(mail,cid,fn,sn,wtype,tag,pn,bn,ayr='',gyr='',syr=''):
     who = None
+    if not gyr:
+        gyr = ''
+    if not syr:
+        syr = ''
     if wtype == 'faculty' or wtype == 'staff':
         who = f'{mail}|{cid}|{fn}|{sn}|{wtype}|{tag}|{pn}|{bn}'
     elif wtype == 'student':
         who = f'{mail}|{cid}|{fn}|{sn}|{wtype}|{tag}|{pn}|{bn}|{ayr}'
     elif wtype == 'alumni':
-        who = f'{mail}|{cid}|{fn}|{sn}|{wtype}|{tag}|{pn}|{bn}|{ayr}|{gyr}|{syr}'
+        who = f'{mail}|{cid}|{fn}|{sn}|{wtype}|{tag}|{pn}|{bn}|{gyr}|{syr}'
+
     return who
 
 
@@ -103,27 +108,33 @@ def main():
     cursor = connection.cursor()
     objects = cursor.execute(sql)
 
+    print(headers)
     peeps = []
     for o,obj in enumerate(objects):
-        ayr = None
-        if who == 'alumni':
-            row = _whoareyou(
-                obj.email,obj.cid,obj.firstname,obj.lastname,
-                who,'Soft Launch {}'.format(who.capitalize()),
-                obj.alt_name,obj.birth_last_name,ayr,obj.grad_yr,obj.soc_yr
-            )
-        else:
-            if who == 'student':
-                ayr = obj.plan_grad_yr
-            row = _whoareyou(
-                '{}@carthage.edu'.format(obj.username),obj.cid,obj.firstname,
-                obj.lastname,who,'Soft Launch {}'.format(who.capitalize()),
-                obj.alt_name,obj.birth_last_name,ayr
-            )
-        if test:
-            print('{}) {}'.format(o,row))
-        else:
-            print('{}'.format(row))
+        if obj.email1 or obj.email2:
+            email = obj.email2
+            if not email:
+                email = obj.email1
+            ayr = ''
+            if who == 'alumni':
+                row = _whoareyou(
+                    email,obj.cid,obj.firstname,obj.lastname,
+                    who,'Soft Launch {}'.format(who.capitalize()),
+                    obj.alt_name,obj.birth_last_name,ayr,obj.grad_yr,obj.soc_yr
+                )
+            else:
+                if who == 'student':
+                    ayr = obj.plan_grad_yr
+                row = _whoareyou(
+                    '{}@carthage.edu'.format(obj.username),obj.cid,obj.firstname,
+                    obj.lastname,who,'Soft Launch {}'.format(who.capitalize()),
+                    obj.alt_name,obj.birth_last_name,ayr
+                )
+            if test:
+                print('{}) {}'.format(o,row))
+            else:
+                print('{}'.format(row))
+
 
 if __name__ == '__main__':
     args = parser.parse_args()
