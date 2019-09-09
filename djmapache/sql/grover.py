@@ -1,8 +1,9 @@
 FACSTAFF_STUDENT = '''
 SELECT
     provisioning_vw.lastname, provisioning_vw.firstname,
-    TRIM(aname_rec.line1) as alt_name,
+    TRIM(NVL(aname_rec.line1,"")) as alt_name,
     TRIM(NVL(maiden.lastname,"")) AS birth_last_name,
+    "" as soc_yr,
     provisioning_vw.username, {}
     provisioning_vw.id AS cid
 FROM
@@ -33,7 +34,7 @@ LEFT JOIN
 ON
     (provisioning_vw.id = aname_rec.id AND aname_rec.aa = "ANDR")
 WHERE
-    provisioning_vw.{} is not null
+{}
 {}
 ORDER BY
     provisioning_vw.lastname, provisioning_vw.firstname
