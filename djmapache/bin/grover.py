@@ -12,7 +12,7 @@ from django.conf import settings
 
 from djmapache.sql.grover import ALUMNI, FACSTAFF_STUDENT
 
-from djimix.core.utils import get_connection
+from djimix.core.utils import get_connection, xsql
 
 import argparse
 import logging
@@ -52,7 +52,7 @@ parser.add_argument(
 data=None
 
 
-def _whoareyou(mail,cid,fn,sn,pn,bn,wtype,tag,gyr,syr):
+def _whoareyou(mail,cid,fn,sn,pn,bn,gyr,syr):
     '''
     mail = email
     cid = college id
@@ -61,7 +61,6 @@ def _whoareyou(mail,cid,fn,sn,pn,bn,wtype,tag,gyr,syr):
     pn = previous name
     bn = birth name
     wtype = who
-    tag = system tags
     gyr = graduation year
     syr = social class year
     '''
@@ -72,12 +71,12 @@ def _whoareyou(mail,cid,fn,sn,pn,bn,wtype,tag,gyr,syr):
     if not syr:
         syr = ''
     if data == 'education':
-        who = f'{mail}|{cid}|Carthage College|{tag}|{gyr}'
+        who = f'{mail}|{cid}|Carthage College|{gyr}'
     else:
         if wtype == 'alumni':
-            who = f'{mail}|{cid}|{fn}|{sn}|{pn}|{wtype}|{tag}|{syr}'
+            who = f'{mail}|{cid}|{fn}|{sn}|{pn}|{syr}'
         else:
-            who = f'{mail}|{cid}|{fn}|{sn}|{pn}|{wtype}|{tag}'
+            who = f'{mail}|{cid}|{fn}|{sn}|{pn}'
 
     return who
 
@@ -92,8 +91,6 @@ def main():
     First Name
     Last Name
     Preferred Name
-    User Type
-    User Tag
     Social Class Year
 
     Education data:
@@ -106,9 +103,9 @@ def main():
     '''
 
     if data == 'user':
-        headers = "Email|Database Key|First Name|Last Name|Preferred Name|User Type|User Tags"
+        headers = "Email|Database Key|First Name|Last Name|Preferred Name"
     elif data == 'education':
-        headers = "Email|Database Key|School|Graduation Year|User Tags"
+        headers = "Email|Database Key|School|Graduation Year"
     else:
         print("data must be: 'user' or 'education'\n")
         exit(-1)
@@ -153,8 +150,7 @@ def main():
         exit(-1)
 
     connection = get_connection()
-    cursor = connection.cursor()
-    objects = cursor.execute(sql)
+    objects = xsql(sql, connection)
 
     peeps = []
     for o,obj in enumerate(objects):
@@ -164,10 +160,9 @@ def main():
             if not email:
                 email = obj.email1
 
-        tag = 'Soft Launch {} {}'.format(who.capitalize(),data.capitalize())
         row = _whoareyou(
             email,obj.cid,obj.firstname,obj.lastname,obj.alt_name,
-            obj.birth_last_name,who,tag,obj.grad_yr,obj.soc_yr
+            obj.birth_last_name,obj.grad_yr,obj.soc_yr
         )
 
         if test:
