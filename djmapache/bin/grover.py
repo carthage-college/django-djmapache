@@ -60,25 +60,24 @@ def _whoareyou(mail,cid,fn,sn,pn,bn,gyr,syr):
     sn = surname
     pn = previous name
     bn = birth name
-    wtype = who
     gyr = graduation year
     syr = social class year
     '''
 
-    who = None
+    row = None
     if not gyr:
         gyr = ''
     if not syr:
         syr = ''
     if data == 'education':
-        who = f'{mail}|{cid}|Carthage College|{gyr}'
+        row = f'{mail}|{cid}|Carthage College|{gyr}'
     else:
-        if wtype == 'alumni':
-            who = f'{mail}|{cid}|{fn}|{sn}|{pn}|{syr}'
+        if who == 'alumni':
+            row = f'{mail}|{cid}|{fn}|{sn}|{pn}|{syr}'
         else:
-            who = f'{mail}|{cid}|{fn}|{sn}|{pn}'
+            row = f'{mail}|{cid}|{fn}|{sn}|{pn}'
 
-    return who
+    return row
 
 
 def main():
@@ -150,7 +149,8 @@ def main():
         exit(-1)
 
     connection = get_connection()
-    objects = xsql(sql, connection)
+    with connection:
+        objects = xsql(sql, connection).fetchall()
 
     peeps = []
     for o,obj in enumerate(objects):
