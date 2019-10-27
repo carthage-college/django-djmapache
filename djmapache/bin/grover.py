@@ -44,15 +44,30 @@ parser.add_argument(
 def main():
 
     headers = [
-
         'User Type','Email Address','Database Key','First Name','Last Name',
-        'Preferred Name','Previous Last Name','Concentration',
-        'Majors Admin Only','Minors Admin Only','Social Class Year',
-        'Grad Year','Transcript First Name','Transcript Last Name'
+        'Preferred Name','Previous Last Name',
+        'Transcript First Name','Transcript Last Name',
+        'Concentration','Majors Admin Only','Minors Admin Only',
+        'Social Class Year','Grad Year'
     ]
-
+    diplo_fields = ''
+    diplo_join = ''
     if who == 'student' or who == 'faculty' or who == 'staff':
         if who == 'student':
+            diplo_fields = '''
+                TRIM(diplo.firstname) as diploma_firstname,
+                TRIM(diplo.lastname) as diploma_lastname,
+            '''
+            diplo_join = '''
+                LEFT JOIN
+                    addree_rec diplo
+                ON
+                    provisioning_vw.id = diplo.prim_id
+                AND
+                    diplo.style= "D"
+                AND
+                    NVL(diplo.inactive_date, TODAY) >= TODAY
+            '''
             where = '''
                 provisioning_vw.student IS NOT NULL
                 AND
@@ -65,7 +80,7 @@ def main():
         else:
             print("wa?\n")
             exit(-1)
-        sql = FACSTAFF_STUDENT(who, where)
+        sql = FACSTAFF_STUDENT(who, diplo_fields, diplo_join, where)
     elif who == 'alumni':
         sql = ALUMNI
     else:

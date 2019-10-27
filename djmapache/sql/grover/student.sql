@@ -1,14 +1,10 @@
-SELECT
+SELECT UNIQUE
     provisioning_vw.username, provisioning_vw.id AS cid,
     provisioning_vw.lastname, provisioning_vw.firstname,
     TRIM(NVL(aname_rec.line1,"")) as alt_name,
     TRIM(NVL(maiden.lastname,"")) AS birth_last_name,
-    --conc1.txt,conc2.txt,conc3.txt,
-    --concat(
-    -- TRIM(NVL(conc1.txt,"")), 
-    -- concat( TRIM(NVL(conc2.txt,"")), TRIM(NVL(conc3.txt,"")) )
-    --) as con,
-    --COALESCE(conc1.txt, '') || COALESCE(conc2.txt, '') || COALESCE(conc3.txt, '') as con,
+    TRIM(diplo.firstname) as diploma_firstname,
+    TRIM(diplo.lastname) as diploma_lastname,
     TRIM(
         NVL(conc1.txt,"")) || TRIM(NVL(conc2.txt,"")) || TRIM(NVL(conc3.txt,"")
     ) as consentration,
@@ -59,7 +55,17 @@ SELECT
 FROM
     provisioning_vw
 INNER JOIN
-    prog_enr_rec ON  provisioning_vw.id = prog_enr_rec.id
+    prog_enr_rec
+ON
+    provisioning_vw.id = prog_enr_rec.id
+LEFT JOIN
+    addree_rec diplo
+ON
+    provisioning_vw.id = diplo.prim_id
+AND
+    diplo.style= "D"
+AND
+    NVL(diplo.inactive_date, TODAY) >= TODAY
 LEFT JOIN (
     SELECT
         prim_id, MAX(active_date) active_date
@@ -103,8 +109,8 @@ LEFT JOIN
 LEFT JOIN
     conc_table conc3    ON  prog_enr_rec.conc3  = conc3.conc
 WHERE
-    provisioning_vw.faculty IS NOT NULL
-OR
-    provisioning_vw.staff IS NOT NULL
+    provisioning_vw.student IS NOT NULL
+AND
+    prog_enr_rec.lv_date IS NULL
 ORDER BY
     provisioning_vw.lastname, provisioning_vw.firstname

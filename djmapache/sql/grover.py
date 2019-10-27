@@ -1,9 +1,9 @@
 """
     'User Type','Email Address','Database Key','First Name','Last Name',
     'Preferred Name','Previous Last Name',
+    'Transcript First Name','Transcript Last Name',
     'Concentration','Majors Admin Only','Minors Admin Only',
     'Social Class Year','Grad Year',
-    'Transcript First Name','Transcript Last Name'
 """
 FACSTAFF_STUDENT = '''
 SELECT
@@ -12,6 +12,7 @@ SELECT
     provisioning_vw.lastname, provisioning_vw.firstname,
     TRIM(NVL(aname_rec.line1,"")) as alt_name,
     TRIM(NVL(maiden.lastname,"")) AS birth_last_name,
+    {}
     TRIM(
         NVL(conc1.txt,"")) || TRIM(NVL(conc2.txt,"")) || TRIM(NVL(conc3.txt,"")
     ) as consentration,
@@ -63,6 +64,7 @@ FROM
     provisioning_vw
 INNER JOIN
     prog_enr_rec ON  provisioning_vw.id = prog_enr_rec.id
+{}
 LEFT JOIN (
     SELECT
         prim_id, MAX(active_date) active_date
