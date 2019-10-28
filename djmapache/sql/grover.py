@@ -3,7 +3,7 @@
     'Preferred Name','Previous Last Name',
     'Transcript First Name','Transcript Last Name',
     'Concentration','Majors Admin Only','Minors Admin Only',
-    'Social Class Year','Grad Year',
+    'Social Class Year','Grad Year'
 """
 FACSTAFF_STUDENT = '''
 SELECT
@@ -14,7 +14,9 @@ SELECT
     TRIM(NVL(maiden.lastname,"")) AS birth_last_name,
     {}
     TRIM(
-        NVL(conc1.txt,"")) || TRIM(NVL(conc2.txt,"")) || TRIM(NVL(conc3.txt,"")
+        TRIM(NVL(conc1.txt,"")) || ' ' ||
+        TRIM(NVL(conc2.txt,"")) || ' ' ||
+        TRIM(NVL(conc3.txt,""))
     ) as consentration,
     TRIM(NVL(
         CASE
@@ -57,9 +59,7 @@ SELECT
             THEN minor3.txt
             ELSE conc3.txt
         END
-    ,'')) AS minors,
-    "" as tran_first_name,
-    "" as tran_last_name
+    ,'')) AS minors
 FROM
     provisioning_vw
 INNER JOIN

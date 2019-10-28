@@ -60,6 +60,7 @@ staging.py
 production.py
 wsgi.py
 migrations
+*.csv
 
 # Scrapy stuff:
 .scrapy

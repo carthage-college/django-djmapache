@@ -53,9 +53,7 @@ SELECT
             THEN minor3.txt
             ELSE conc3.txt
         END
-    ,'')) AS minors,
-    "" as tran_first_name,
-    "" as tran_last_name
+    ,'')) AS minors
 FROM
     provisioning_vw
 INNER JOIN

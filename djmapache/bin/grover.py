@@ -70,7 +70,13 @@ def main():
             '''
             where = '''
                 provisioning_vw.student IS NOT NULL
-                AND
+            AND
+                prog_enr_rec.acst IN (
+                    'GOOD','LOC','PROB','PROC','PROR','READ','RP','SAB','SHAC','SHOC'
+                )
+            AND
+                subprog not in ("ENRM","PARA")
+            AND
                 prog_enr_rec.lv_date IS NULL
             '''
         elif who =='faculty':
