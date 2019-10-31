@@ -13,7 +13,7 @@ import django
 django.setup()
 
 from django.conf import settings
-from djmapache.sql.grover import ALUMNI, FACSTAFF_STUDENT
+from djmapache.sql.grover import ALUMNI, FACSTAFF, STUDENT
 from djimix.core.utils import get_connection, xsql
 
 logger = logging.getLogger('djmapache')
@@ -26,11 +26,10 @@ desc = """
 parser = argparse.ArgumentParser(
     description=desc, formatter_class=argparse.RawTextHelpFormatter
 )
-
 parser.add_argument(
     '-w', '--who',
     required=True,
-    help="student, faculty, staff",
+    help="student, faculty, staff, or alumni",
     dest='who'
 )
 parser.add_argument(
@@ -43,50 +42,25 @@ parser.add_argument(
 
 def main():
 
-    headers = [
+    headers = {}
+    headers['faculty'] = [
         'User Type','Email Address','Database Key','First Name','Last Name',
-        'Preferred Name','Previous Last Name',
-        'Transcript First Name','Transcript Last Name',
-        'Concentration','Majors Admin Only','Minors Admin Only',
-        'Social Class Year','Grad Year'
+        'Preferred Name','Previous Last Name'
     ]
-    diplo_fields = ''
-    diplo_join = ''
-    if who == 'student' or who == 'faculty' or who == 'staff':
-        if who == 'student':
-            diplo_fields = '''
-                TRIM(diplo.firstname) as diploma_firstname,
-                TRIM(diplo.lastname) as diploma_lastname,
-            '''
-            diplo_join = '''
-                LEFT JOIN
-                    addree_rec diplo
-                ON
-                    provisioning_vw.id = diplo.prim_id
-                AND
-                    diplo.style= "D"
-                AND
-                    NVL(diplo.inactive_date, TODAY) >= TODAY
-            '''
-            where = '''
-                provisioning_vw.student IS NOT NULL
-            AND
-                prog_enr_rec.acst IN (
-                    'GOOD','LOC','PROB','PROC','PROR','READ','RP','SAB','SHAC','SHOC'
-                )
-            AND
-                subprog not in ("ENRM","PARA")
-            AND
-                prog_enr_rec.lv_date IS NULL
-            '''
-        elif who =='faculty':
-            where = 'provisioning_vw.faculty IS NOT NULL'
-        elif who == 'staff':
-            where = 'provisioning_vw.staff IS NOT NULL'
-        else:
-            print("wa?\n")
-            exit(-1)
-        sql = FACSTAFF_STUDENT(who, diplo_fields, diplo_join, where)
+    headers['staff'] = headers['faculty']
+    headers['student'] = headers['staff'] + [
+        'Transcript First Name','Transcript Last Name',
+        'Concentration','Majors Admin Only','Minors Admin Only'
+    ]
+    headers['alumni'] = headers['student'] + [
+        'Social Class Year','Graduation Year Admin Only'
+    ]
+
+    if who == 'faculty' or who == 'staff':
+        where = 'provisioning_vw.{} IS NOT NULL'.format(who)
+        sql = FACSTAFF(where)
+    elif who == 'student':
+        sql = STUDENT
     elif who == 'alumni':
         sql = ALUMNI
     else:
@@ -94,7 +68,8 @@ def main():
         exit(-1)
 
     if test:
-        print(headers)
+        print("who = {}".format(who))
+        print(headers[who])
         print("sql = {}".format(sql))
         logger.debug("sql = {}".format(sql))
         exit(-1)
@@ -102,14 +77,15 @@ def main():
     connection = get_connection()
     with connection:
         rows = xsql(sql, connection).fetchall()
-    with open(r'grover.csv', 'w', newline='') as csvfile:
+
+    phile = r'{}.csv'.format(who)
+    with open(phile, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
-        writer.writerow([x for x in headers])
+        writer.writerow([x for x in headers[who]])
         for row in rows:
-            row.username = '{}@carthage.edu'.format(row.username)
             writer.writerow(row)
 
-    print('done.')
+    print('done. created file: {}'.format(phile))
 
 
 if __name__ == '__main__':

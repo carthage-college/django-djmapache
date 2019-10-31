@@ -5,7 +5,7 @@ SELECT UNIQUE
     TRIM(NVL(maiden.lastname,"")) AS birth_last_name,
     TRIM(diplo.firstname) as diploma_firstname,
     TRIM(diplo.lastname) as diploma_lastname,
-        TRIM(
+    TRIM(
         TRIM(NVL(conc1.txt,"")) || ' ' ||
         TRIM(NVL(conc2.txt,"")) || ' ' ||
         TRIM(NVL(conc3.txt,""))
@@ -54,7 +54,7 @@ SELECT UNIQUE
     ,'')) AS minors
 FROM
     provisioning_vw
-INNER JOIN
+LEFT JOIN
     prog_enr_rec
 ON
     provisioning_vw.id = prog_enr_rec.id
@@ -114,8 +114,6 @@ AND
     prog_enr_rec.acst IN (
         'GOOD','LOC','PROB','PROC','PROR','READ','RP','SAB','SHAC','SHOC'
     )
-AND
-    subprog not in ("ENRM","PARA")
 AND
     prog_enr_rec.lv_date IS NULL
 ORDER BY
