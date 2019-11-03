@@ -83,6 +83,7 @@ def main():
         writer = csv.writer(csvfile)
         writer.writerow([x for x in headers[who]])
         for row in rows:
+            row.email = row.email.replace(' ','+')
             writer.writerow(row)
 
     print('done. created file: {}'.format(phile))

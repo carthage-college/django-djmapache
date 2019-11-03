@@ -193,7 +193,8 @@ SELECT DISTINCT
     'alumni' as user_type,
     TRIM(
         TRIM(ids.lastname) || '+' ||
-        TRIM(ids.firstname) || '@carthage.college'
+        TRIM(ids.firstname) || '+' ||
+        ids.id || '@carthage.college'
     ) as email,
     ids.id AS cid,
     TRIM(ids.firstname) AS firstname,
