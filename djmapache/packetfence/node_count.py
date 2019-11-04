@@ -38,6 +38,8 @@ def main():
     url = '{}{}/active'.format(API_EARL, settings.PACKETFENCE_REPORTS_ENDPOINT)
     resp = requests.get(url=url, headers=headers, verify=False)
     data = resp.json()
+    for c, item in enumerate(data['items']):
+        print(c,item)
     print(len(data['items']))
 
 
