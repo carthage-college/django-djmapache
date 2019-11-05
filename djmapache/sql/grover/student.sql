@@ -9,7 +9,7 @@ SELECT UNIQUE
         TRIM(NVL(conc1.txt,"")) || ' ' ||
         TRIM(NVL(conc2.txt,"")) || ' ' ||
         TRIM(NVL(conc3.txt,""))
-    ) as consentration,
+    ) as concentration,
     TRIM(NVL(
         CASE
             WHEN TRIM(prog_enr_rec.deg) IN ("BA","BS")
