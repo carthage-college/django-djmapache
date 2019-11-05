@@ -44,7 +44,7 @@ def main():
 
     headers = {}
     headers['faculty'] = [
-        'User Type','Email Address','Database Key','First Name','Last Name',
+        'User Type','Email Address','Database Key','Last Name','First Name',
         'Preferred Name','Previous Last Name'
     ]
     headers['staff'] = headers['faculty']
@@ -56,6 +56,7 @@ def main():
         'Social Class Year','Graduation Year Admin Only'
     ]
 
+    # check for profile type will fail if not one of the four allowed types
     if who == 'faculty' or who == 'staff':
         where = 'provisioning_vw.{} IS NOT NULL'.format(who)
         sql = FACSTAFF(where)
