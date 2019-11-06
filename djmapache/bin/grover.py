@@ -83,8 +83,10 @@ def main():
     with open(phile, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow([x for x in headers[who]])
+        char_remove = set([' ','(',')'])
         for row in rows:
-            row.email = row.email.replace(' ','+')
+            #row.email = row.email.replace(' ','+')
+            row.email = ''.join([c for c in row.email if c not in char_remove])
             writer.writerow(row)
 
     print('done. created file: {}'.format(phile))
