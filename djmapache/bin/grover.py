@@ -77,7 +77,7 @@ def main():
 
     connection = get_connection()
     with connection:
-        rows = xsql(sql, connection).fetchall()
+        rows = xsql(sql, connection, key=settings.INFORMIX_DEBUG).fetchall()
 
     phile = r'{}.csv'.format(who)
     with open(phile, 'w', newline='') as csvfile:
