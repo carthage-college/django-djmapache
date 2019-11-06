@@ -68,16 +68,41 @@ SELECT DISTINCT
         WHEN TRIM(progs.deg) IN ("BA","BS")
         THEN alum.soc_clyr
     END AS soc_yr,
-    CASE
-        WHEN TRIM(progs.deg) IN ("BA","BS")
-        THEN alum.cl_yr
-    END AS grad_yr
+    progs.deg_grant_yr AS grad_yr
+
+--FROM
+    --alum_rec alum
+--INNER JOIN
+    --id_rec ids
+--ON
+    --alum.id = ids.id
+
+--FROM
+    --alum_rec alum
+--LEFT JOIN
+    --id_rec ids
+--ON
+    --alum.id = ids.id
+
+--FROM
+    --id_rec ids
+--INNER JOIN
+    --alum_rec alum
+--ON
+    --ids.id = alum.id
+
 FROM
-    alum_rec alum
-INNER JOIN
     id_rec ids
+LEFT JOIN
+    alum_rec alum
 ON
-    alum.id = ids.id
+    ids.id = alum.id
+LEFT JOIN
+    prog_enr_rec progs
+ON
+    ids.id = progs.id
+AND
+    progs.acst = "GRAD"
 LEFT JOIN
     addree_rec diplo
 ON
@@ -113,17 +138,6 @@ AND
 AND
     maiden.style = "M"
 LEFT JOIN
-    prog_enr_rec progs
-ON
-    ids.id = progs.id
-AND
-    progs.acst = "GRAD"
-AND (
-    alum.cl_yr = progs.deg_grant_yr
-OR
-    alum.soc_clyr = progs.deg_grant_yr
-)
-LEFT JOIN
     major_table major1  ON  progs.major1 = major1.major
 LEFT JOIN
     major_table major2  ON  progs.major2 = major2.major
@@ -143,5 +157,19 @@ LEFT JOIN
     conc_table conc3    ON  progs.conc3  = conc3.conc
 WHERE
     NVL(ids.decsd, "N") = "N"
+AND
+    ids.aa='PERM'
+AND
+    ids.correct_addr='Y'
+AND
+    ids.mail='Y'
+AND
+    ids.sol='Y'
+AND
+    ids.pub='Y'
+    --ids.id=1385027
 ORDER BY
     lastname, firstname
+
+--select * from id_rec where id=1385027
+--select * from id_rec where id=1578895
