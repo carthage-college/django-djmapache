@@ -13,14 +13,13 @@ import django
 django.setup()
 
 from django.conf import settings
-from djmapache.sql.grover import ALUMNI, FACSTAFF, STUDENT
 from djimix.core.utils import get_connection, xsql
 
 logger = logging.getLogger('djmapache')
 
 # set up command-line options
 desc = """
-    Accepts as input a group type: student, faculty, staff, or alumni
+    Accepts as input a group type: student, facstaff, alumni, or educatdion
 """
 
 parser = argparse.ArgumentParser(
@@ -29,7 +28,7 @@ parser = argparse.ArgumentParser(
 parser.add_argument(
     '-w', '--who',
     required=True,
-    help="student, faculty, staff, or alumni",
+    help="student, facstaff, alumni, or education",
     dest='who'
 )
 parser.add_argument(
@@ -39,40 +38,41 @@ parser.add_argument(
     dest='test'
 )
 
+HEADERS = {}
+HEADERS['facstaff'] = [
+    'User Type','Email Address','Database Key','Last Name','First Name',
+    'Preferred Name','Previous Last Name'
+]
+HEADERS['alumni'] = HEADERS['student'] = HEADERS['facstaff'] + [
+    'Transcript First Name','Transcript Last Name',
+    'Concentration','Majors Admin Only','Minors Admin Only',
+    'Social Class Year','Graduation Year Admin Only'
+]
+HEADERS['education'] = [
+    'User Type','Email Address','Database Key','Graduation Year','School',
+    'Degree Type','Majors','Minors'
+]
+
 
 def main():
 
-    headers = {}
-    headers['faculty'] = [
-        'User Type','Email Address','Database Key','Last Name','First Name',
-        'Preferred Name','Previous Last Name'
-    ]
-    headers['staff'] = headers['faculty']
-    headers['student'] = headers['staff'] + [
-        'Transcript First Name','Transcript Last Name',
-        'Concentration','Majors Admin Only','Minors Admin Only'
-    ]
-    headers['alumni'] = headers['student'] + [
-        'Social Class Year','Graduation Year Admin Only'
-    ]
-
     # check for profile type will fail if not one of the four allowed types
-    if who == 'faculty' or who == 'staff':
-        where = 'provisioning_vw.{} IS NOT NULL'.format(who)
-        sql = FACSTAFF(where)
-    elif who == 'student':
-        sql = STUDENT
-    elif who == 'alumni':
-        sql = ALUMNI
-    else:
-        print("who must be: 'student', 'faculty', 'staff', or 'alumni'\n")
+    try:
+        headers = HEADERS[who]
+    except:
+        print("who must be: 'student', 'facstaff', 'alumni', or 'education'\n")
         exit(-1)
+
+    phile = '{}/sql/grover/{}.sql'.format(settings.BASE_DIR,who)
+    with open(phile) as incantation:
+        sql = incantation.read()
 
     if test:
         print("who = {}".format(who))
-        print(headers[who])
+        print(headers)
         print("sql = {}".format(sql))
         logger.debug("sql = {}".format(sql))
+        phile = '{}/sql/grover/{}.sql'.format(settings.BASE_DIR,who)
         exit(-1)
 
     connection = get_connection()
@@ -81,11 +81,10 @@ def main():
 
     phile = r'{}.csv'.format(who)
     with open(phile, 'w', newline='') as csvfile:
-        writer = csv.writer(csvfile)
-        writer.writerow([x for x in headers[who]])
+        writer = csv.writer(csvfile, delimiter='|')
+        writer.writerow([x for x in headers])
         char_remove = set([' ','(',')'])
         for row in rows:
-            #row.email = row.email.replace(' ','+')
             row.email = ''.join([c for c in row.email if c not in char_remove])
             writer.writerow(row)
 
@@ -94,7 +93,7 @@ def main():
 
 if __name__ == '__main__':
     args = parser.parse_args()
-    who = args.who
+    who = args.who.lower()
     test = args.test
 
     if test:

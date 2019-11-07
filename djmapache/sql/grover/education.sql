@@ -2,17 +2,16 @@ SELECT UNIQUE
     'student' AS user_type,
     TRIM(
         TRIM(provisioning_vw.username) || '@carthage.edu'
-    ) AS email, provisioning_vw.id AS cid,
-    provisioning_vw.lastname, provisioning_vw.firstname,
-    TRIM(NVL(aname_rec.line1,"")) AS alt_name,
-    TRIM(NVL(maiden.lastname,"")) AS birth_last_name,
-    TRIM(diplo.firstname) AS diploma_firstname,
-    TRIM(diplo.lastname) AS diploma_lastname,
-    TRIM(
-        TRIM(NVL(conc1.txt,"")) || ' ' ||
-        TRIM(NVL(conc2.txt,"")) || ' ' ||
-        TRIM(NVL(conc3.txt,""))
-    ) AS concentration,
+    ) AS email,
+    provisioning_vw.id AS cid, prog_enr_rec.plan_grad_yr,
+    'Carthage College' as school,
+    TRIM(NVL(
+        CASE
+            WHEN TRIM(prog_enr_rec.deg) IN ("MED","MM","MS","")
+            THEN "Master's Degree"
+            ELSE "Bachelor's Degree"
+        END
+    ,'')) AS degree_type,
     TRIM(NVL(
         CASE
             WHEN TRIM(prog_enr_rec.deg) IN ("BA","BS")
@@ -54,8 +53,7 @@ SELECT UNIQUE
             THEN minor3.txt
             ELSE conc3.txt
         END
-    ,'')) AS minors,
-    prog_enr_rec.plan_grad_yr AS soc_yr, prog_enr_rec.plan_grad_yr AS grad_yr
+    ,'')) AS minors
 FROM
     provisioning_vw
 LEFT JOIN
@@ -121,4 +119,4 @@ AND
 AND
     prog_enr_rec.lv_date IS NULL
 ORDER BY
-    provisioning_vw.lastname, provisioning_vw.firstname
+    provisioning_vw.id
