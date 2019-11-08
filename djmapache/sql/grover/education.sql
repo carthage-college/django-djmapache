@@ -1,9 +1,8 @@
 SELECT UNIQUE
-    'student' AS user_type,
+    provisioning_vw.id AS cid,
     TRIM(
         TRIM(provisioning_vw.username) || '@carthage.edu'
     ) AS email,
-    provisioning_vw.id AS cid, prog_enr_rec.plan_grad_yr,
     'Carthage College' as school,
     TRIM(NVL(
         CASE
@@ -18,14 +17,14 @@ SELECT UNIQUE
             THEN major1.txt
             ELSE conc1.txt
         END
-    ,'')) || ' ' ||
+    ,'')) || ',' ||
     TRIM(NVL(
         CASE
             WHEN TRIM(prog_enr_rec.deg) IN ("BA","BS")
             THEN major2.txt
             ELSE conc2.txt
         END
-    ,'')) || ' ' ||
+    ,'')) || ',' ||
     TRIM(NVL(
         CASE
             WHEN TRIM(prog_enr_rec.deg) IN ("BA","BS")
@@ -39,21 +38,22 @@ SELECT UNIQUE
             THEN minor1.txt
             ELSE conc1.txt
         END
-    ,'')) || ' ' ||
+    ,'')) || ',' ||
     TRIM(NVL(
         CASE
             WHEN TRIM(prog_enr_rec.deg) IN ("BA","BS")
             THEN minor2.txt
             ELSE conc2.txt
         END
-    ,'')) || ' ' ||
+    ,'')) || ',' ||
     TRIM(NVL(
         CASE
             WHEN TRIM(prog_enr_rec.deg) IN ("BA","BS")
             THEN minor3.txt
             ELSE conc3.txt
         END
-    ,'')) AS minors
+    ,'')) AS minors,
+    prog_enr_rec.plan_grad_yr
 FROM
     provisioning_vw
 LEFT JOIN
