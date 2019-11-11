@@ -95,10 +95,14 @@ def main():
             # python 3 returns an iterator from filter(), so we wrap it in list()
             # grover also wants double quotes and not single quotes so we
             # convert the list to json string with dumps()
-            majors = list(filter(None, row.majors.split(',')))
-            row.majors = json.dumps(majors)
-            minors = list(filter(None, row.minors.split(',')))
-            row.minors = json.dumps(minors)
+            if who != 'facstaff':
+                if who != 'education':
+                    concentration = list(filter(None, row.concentration.split(',')))
+                    row.concentration = json.dumps(concentration)
+                majors = list(filter(None, row.majors.split(',')))
+                row.majors = json.dumps(majors)
+                minors = list(filter(None, row.minors.split(',')))
+                row.minors = json.dumps(minors)
             # write the row
             writer.writerow(row)
 

@@ -1,5 +1,9 @@
 SELECT
-    provisioning_vw.username, provisioning_vw.id AS cid,
+    UNIQUE
+    "Faculty & Staff" as user_type,
+    TRIM(
+        TRIM(provisioning_vw.username) || '@carthage.edu'
+    ) AS email, provisioning_vw.id AS cid,
     provisioning_vw.lastname, provisioning_vw.firstname,
     TRIM(NVL(aname_rec.line1,"")) as alt_name,
     TRIM(NVL(maiden.lastname,"")) AS birth_last_name

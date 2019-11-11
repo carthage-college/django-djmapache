@@ -9,8 +9,8 @@ SELECT UNIQUE
     TRIM(diplo.firstname) AS diploma_firstname,
     TRIM(diplo.lastname) AS diploma_lastname,
     TRIM(
-        TRIM(NVL(conc1.txt,"")) || ' ' ||
-        TRIM(NVL(conc2.txt,"")) || ' ' ||
+        TRIM(NVL(conc1.txt,"")) || ',' ||
+        TRIM(NVL(conc2.txt,"")) || ',' ||
         TRIM(NVL(conc3.txt,""))
     ) AS concentration,
     TRIM(NVL(
@@ -19,14 +19,14 @@ SELECT UNIQUE
             THEN major1.txt
             ELSE conc1.txt
         END
-    ,'')) || ' ' ||
+    ,'')) || ',' ||
     TRIM(NVL(
         CASE
             WHEN TRIM(prog_enr_rec.deg) IN ("BA","BS")
             THEN major2.txt
             ELSE conc2.txt
         END
-    ,'')) || ' ' ||
+    ,'')) || ',' ||
     TRIM(NVL(
         CASE
             WHEN TRIM(prog_enr_rec.deg) IN ("BA","BS")
@@ -40,14 +40,14 @@ SELECT UNIQUE
             THEN minor1.txt
             ELSE conc1.txt
         END
-    ,'')) || ' ' ||
+    ,'')) || ',' ||
     TRIM(NVL(
         CASE
             WHEN TRIM(prog_enr_rec.deg) IN ("BA","BS")
             THEN minor2.txt
             ELSE conc2.txt
         END
-    ,'')) || ' ' ||
+    ,'')) || ',' ||
     TRIM(NVL(
         CASE
             WHEN TRIM(prog_enr_rec.deg) IN ("BA","BS")
