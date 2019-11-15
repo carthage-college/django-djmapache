@@ -49,9 +49,7 @@ FROM
                 FROM
                     prog_enr_rec
                 WHERE
-                    acst    =    'GRAD'
-                    OR
-                    acst    =    'GOOD'
+                    acst  in ('GRAD','GOOD')
                 GROUP BY
                     id
             ) ALL_GRADS
@@ -63,11 +61,11 @@ FROM
                 NVL(IR.decsd, 'N')    =    'N'
             INNER JOIN (
                 SELECT
-                    id, MAX(cum_earn_hrs) AS hrs
+                    id
                 FROM
                     stu_acad_rec
                 WHERE
-                    cum_earn_hrs > 65 
+                    cum_earn_hrs > 65
                 GROUP BY id
             ) STU
             ON
