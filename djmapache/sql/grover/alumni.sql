@@ -59,7 +59,7 @@ FROM
                 ALL_GRADS.id = IR.id
             AND
                 NVL(IR.decsd, 'N')    =    'N'
-            INNER JOIN (
+            LEFT JOIN (
                 SELECT
                     id
                 FROM
@@ -70,27 +70,27 @@ FROM
             ) STU
             ON
                 ALL_GRADS.id = STU.id
-            LEFT JOIN    prog_enr_rec    UNDG    ON    ALL_GRADS.id        =    UNDG.id
-                                                AND    UNDG.prog            =    'UNDG'
-                                                AND    UNDG.acst            =    'GRAD'
-            LEFT JOIN    prog_enr_rec    GRAD    ON    ALL_GRADS.id        =    GRAD.id
-                                                AND    GRAD.prog            =    'GRAD'
-                                                AND    GRAD.acst            =    'GRAD'
-    )    progs  LEFT JOIN    major_table    major1        ON    progs.major1    =    major1.major
-                LEFT JOIN    major_table    major2        ON    progs.major2    =    major2.major
-                LEFT JOIN    major_table    major3        ON    progs.major3    =    major3.major
-                LEFT JOIN    minor_table    minor1        ON    progs.minor1    =    minor1.minor
-                LEFT JOIN    minor_table    minor2        ON    progs.minor2    =    minor2.minor
-                LEFT JOIN    minor_table    minor3        ON    progs.minor3    =    minor3.minor
-                LEFT JOIN    conc_table    conc1        ON    progs.conc1        =    conc1.conc
-                LEFT JOIN    conc_table    conc2        ON    progs.conc2        =    conc2.conc
-                LEFT JOIN    conc_table    conc3        ON    progs.conc3        =    conc3.conc
-                LEFT JOIN    alum_rec    alum        ON    progs.id        =    alum.id
-                LEFT JOIN    addree_rec    diplo        ON    progs.id        =    diplo.prim_id
-                                                    AND    diplo.style        =    "D"
-                                                    AND    NVL(diplo.inactive_date, TODAY) >= TODAY
-                LEFT JOIN    aa_rec        aname_rec    ON    progs.id        =    aname_rec.id
-                                                    AND    aname_rec.aa    =    "ANDR"
+            LEFT JOIN    prog_enr_rec    UNDG    ON    ALL_GRADS.id     =    UNDG.id
+                                                AND    UNDG.prog        =    'UNDG'
+                                                AND    UNDG.acst        =    'GRAD'
+            LEFT JOIN    prog_enr_rec    GRAD    ON    ALL_GRADS.id     =    GRAD.id
+                                                AND    GRAD.prog        =    'GRAD'
+                                                AND    GRAD.acst        =    'GRAD'
+    )    progs  LEFT JOIN major_table major1     ON    progs.major1     =    major1.major
+                LEFT JOIN major_table major2     ON    progs.major2     =    major2.major
+                LEFT JOIN major_table major3     ON    progs.major3     =    major3.major
+                LEFT JOIN minor_table minor1     ON    progs.minor1     =    minor1.minor
+                LEFT JOIN minor_table minor2     ON    progs.minor2     =    minor2.minor
+                LEFT JOIN minor_table minor3     ON    progs.minor3     =    minor3.minor
+                LEFT JOIN conc_table  conc1      ON    progs.conc1      =    conc1.conc
+                LEFT JOIN conc_table  conc2      ON    progs.conc2      =    conc2.conc
+                LEFT JOIN conc_table  conc3      ON    progs.conc3      =    conc3.conc
+                LEFT JOIN alum_rec    alum       ON    progs.id         =    alum.id
+                LEFT JOIN addree_rec  diplo      ON    progs.id         =    diplo.prim_id
+                                                AND    diplo.style      =    "D"
+                                                AND    NVL(diplo.inactive_date, TODAY) >= TODAY
+                LEFT JOIN aa_rec    aname_rec    ON    progs.id         =    aname_rec.id
+                                                AND    aname_rec.aa     =    "ANDR"
                 LEFT JOIN (
                     SELECT
                         prim_id, MAX(active_date) AS active_date
@@ -99,9 +99,11 @@ FROM
                     WHERE
                         style = "M"
                     GROUP BY prim_id
-                )                        prevmap        ON    progs.id            =    prevmap.prim_id
-                LEFT JOIN    addree_rec    maiden        ON    prevmap.prim_id        =    maiden.prim_id
-                                                    AND    prevmap.active_date    =    maiden.active_date
-                                                    AND    maiden.style        =    "M"
+                ) prevmap
+                ON
+                    progs.id = prevmap.prim_id
+                LEFT JOIN addree_rec    maiden   ON    prevmap.prim_id  =    maiden.prim_id
+                                                AND    prevmap.active_date    =    maiden.active_date
+                                                AND    maiden.style     =    "M"
 ORDER BY
     lastname, firstname
