@@ -59,7 +59,8 @@ FROM
                 ALL_GRADS.id = IR.id
             AND
                 NVL(IR.decsd, 'N')    =    'N'
-            LEFT JOIN (
+            INNER
+            JOIN (
                 SELECT
                     id
                 FROM
