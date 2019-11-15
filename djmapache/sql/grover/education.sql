@@ -6,7 +6,7 @@ SELECT UNIQUE
     'Carthage College' as school,
     TRIM(NVL(
         CASE
-            WHEN TRIM(prog_enr_rec.deg) IN ("MED","MM","MS","")
+            WHEN TRIM(prog_enr_rec.deg) IN ("MED","MM","MS")
             THEN "Master's Degree"
             ELSE "Bachelor's Degree"
         END
