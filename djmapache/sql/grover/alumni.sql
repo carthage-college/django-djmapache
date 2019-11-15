@@ -50,17 +50,35 @@ FROM
                     prog_enr_rec
                 WHERE
                     acst    =    'GRAD'
+                    OR
+                    acst    =    'GOOD'
                 GROUP BY
                     id
-            )    ALL_GRADS    INNER JOIN    id_rec        IR    ON    ALL_GRADS.id        =    IR.id
-                                                    AND    NVL(IR.decsd, 'N')    =    'N'
-                            LEFT JOIN    prog_enr_rec    UNDG    ON    ALL_GRADS.id        =    UNDG.id
-                                                                AND    UNDG.prog            =    'UNDG'
-                                                                AND    UNDG.acst            =    'GRAD'
-                            LEFT JOIN    prog_enr_rec    GRAD    ON    ALL_GRADS.id        =    GRAD.id
-                                                                AND    GRAD.prog            =    'GRAD'
-                                                                AND    GRAD.acst            =    'GRAD'
-    )    progs    LEFT JOIN    major_table    major1        ON    progs.major1    =    major1.major
+            ) ALL_GRADS
+            INNER JOIN
+                id_rec IR
+            ON
+                ALL_GRADS.id = IR.id
+            AND
+                NVL(IR.decsd, 'N')    =    'N'
+            INNER JOIN (
+                SELECT
+                    id, MAX(cum_earn_hrs) AS hrs
+                FROM
+                    stu_acad_rec
+                WHERE
+                    cum_earn_hrs > 65 
+                GROUP BY id
+            ) STU
+            ON
+                ALL_GRADS.id = STU.id
+            LEFT JOIN    prog_enr_rec    UNDG    ON    ALL_GRADS.id        =    UNDG.id
+                                                AND    UNDG.prog            =    'UNDG'
+                                                AND    UNDG.acst            =    'GRAD'
+            LEFT JOIN    prog_enr_rec    GRAD    ON    ALL_GRADS.id        =    GRAD.id
+                                                AND    GRAD.prog            =    'GRAD'
+                                                AND    GRAD.acst            =    'GRAD'
+    )    progs  LEFT JOIN    major_table    major1        ON    progs.major1    =    major1.major
                 LEFT JOIN    major_table    major2        ON    progs.major2    =    major2.major
                 LEFT JOIN    major_table    major3        ON    progs.major3    =    major3.major
                 LEFT JOIN    minor_table    minor1        ON    progs.minor1    =    minor1.minor
