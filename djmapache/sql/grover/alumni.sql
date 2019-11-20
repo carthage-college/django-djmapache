@@ -1,6 +1,7 @@
 SELECT
-    'alumni' AS user_type, progs.id AS cid,
+    'alumni' AS user_type,
     TRIM(progs.lastname || '+' || progs.firstname || '+' || progs.id || '@carthage.college') AS email,
+    progs.id AS cid,
     progs.lastname AS lastname, progs.firstname AS firstname,
     TRIM(NVL(aname_rec.line1,"")) AS alt_name, TRIM(NVL(maiden.lastname,"")) AS birth_last_name,
     TRIM(diplo.firstname) as diploma_firstname, TRIM(diplo.lastname) as diploma_lastname,

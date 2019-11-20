@@ -33,6 +33,12 @@ parser.add_argument(
     dest='who'
 )
 parser.add_argument(
+    '--pseudo',
+    action='store_true',
+    help="Include pseudo alumni?",
+    dest='pseudo'
+)
+parser.add_argument(
     '--test',
     action='store_true',
     help="Dry run?",
@@ -62,26 +68,34 @@ def main():
         headers = HEADERS[who]
     except:
         print("who must be: 'student', 'facstaff', 'alumni', or 'education'\n")
+        print("who = {}".format(who))
         exit(-1)
 
-    #phile = '{}/sql/grover/{}.sql'.format(settings.BASE_DIR,who)
-    phile = os.path.join(settings.BASE_DIR, 'sql/grover', '{}.sql'.format(who))
+    suffix = ''
+    if pseudo:
+        suffix = '_pseudo'
+
+    phile = os.path.join(settings.BASE_DIR, 'sql/grover', '{}{}.sql'.format(
+        who, suffix
+    ))
     with open(phile) as incantation:
         sql = incantation.read()
 
     if test:
         print("who = {}".format(who))
+        print("headers")
         print(headers)
+        print("phile:")
+        print(phile)
         print("sql = {}".format(sql))
         logger.debug("sql = {}".format(sql))
-        phile = '{}/sql/grover/{}.sql'.format(settings.BASE_DIR,who)
         exit(-1)
 
     connection = get_connection()
     with connection:
         rows = xsql(sql, connection, key=settings.INFORMIX_DEBUG).fetchall()
 
-    phile = r'{}.csv'.format(who)
+    phile = r'{}{}.csv'.format(who, suffix)
     with open(phile, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile, delimiter='|', quoting=csv.QUOTE_NONE, quotechar='')
         writer.writerow([x for x in headers])
@@ -112,6 +126,7 @@ def main():
 if __name__ == '__main__':
     args = parser.parse_args()
     who = args.who.lower()
+    pseudo = args.pseudo
     test = args.test
 
     if test:
