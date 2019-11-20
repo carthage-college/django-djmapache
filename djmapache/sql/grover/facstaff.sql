@@ -39,5 +39,9 @@ WHERE
     provisioning_vw.faculty IS NOT NULL
 OR
     provisioning_vw.staff IS NOT NULL
+AND
+    provisioning_vw.id not in (
+        SELECT id FROM prog_enr_rec WHERE acst = 'GRAD' GROUP BY id
+    )
 ORDER BY
     provisioning_vw.lastname, provisioning_vw.firstname
