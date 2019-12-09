@@ -53,7 +53,7 @@ HEADERS['facstaff'] = [
 HEADERS['alumni'] = HEADERS['student'] = HEADERS['facstaff'] + [
     'Transcript First Name','Transcript Last Name',
     'Concentration','Majors Admin Only','Minors Admin Only',
-    'Social Class Year','Graduation Year Admin Only'
+    'Social Class Year','Graduation Year'
 ]
 HEADERS['education'] = [
     'Database Key','Email Address','School Name','School Degree',
