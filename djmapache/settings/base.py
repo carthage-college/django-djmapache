@@ -7,9 +7,19 @@ Django settings for project.
 import os
 
 # sqlserver connection string
-MSSQL_EARL = ''
-# informix connection string
-INFORMIX_ODBC = ''
+from djimix.settings.local import MSSQL_EARL
+from djimix.settings.local import INFORMIX_ODBC, INFORMIX_ODBC_TRAIN
+from djimix.settings.local import (
+    INFORMIXSERVER,
+    DBSERVERNAME,
+    INFORMIXDIR,
+    ODBCINI,
+    ONCONFIG,
+    INFORMIXSQLHOSTS,
+    LD_LIBRARY_PATH,
+    LD_RUN_PATH
+)
+
 # Debug
 DEBUG = False
 INFORMIX_DEBUG = 'debug'
