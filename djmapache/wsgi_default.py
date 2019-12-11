@@ -5,7 +5,7 @@ import sys
 sys.path.append('/data2/python_venv/3.6/djmapache/lib/python3.6/')
 sys.path.append('/data2/python_venv/3.6/djmapache/lib/python3.6/site-packages/')
 # django
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'djmapache.settings.staging')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'djmapache.settings.production')
 os.environ.setdefault('PYTHON_EGG_CACHE', '/var/cache/python/.python-eggs')
 os.environ.setdefault('TZ', 'America/Chicago')
 # informix
