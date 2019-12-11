@@ -61,6 +61,7 @@ production.py
 wsgi.py
 migrations
 *.csv
+uwsgi.*.ini
 
 # Scrapy stuff:
 .scrapy
