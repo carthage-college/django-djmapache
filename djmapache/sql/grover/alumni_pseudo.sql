@@ -56,14 +56,8 @@ SELECT DISTINCT
             ELSE conc3.txt
         END
     ,'')) AS minors,
-    CASE
-        WHEN TRIM(progs.deg) IN ("BA","BS")
-        THEN alum.soc_clyr
-    END AS soc_yr,
-    CASE
-        WHEN TRIM(progs.deg) IN ("BA","BS")
-        THEN alum.cl_yr
-    END AS grad_yr
+    alum.soc_clyr soc_yr,
+    alum.cl_yr grad_yr
 FROM
     alum_rec alum
 INNER JOIN
@@ -108,12 +102,35 @@ LEFT JOIN
     prog_enr_rec progs
 ON
     ids.id = progs.id
-AND
-    progs.acst = "GRAD"
 AND (
-    alum.cl_yr = progs.deg_grant_yr
+    (
+        (progs.deg_grant_yr = alum.cl_yr
+    OR
+        progs.deg_grant_yr = alum.soc_clyr)
+    AND
+        TRIM(progs.deg) IN ("BA","BS")
+    )
+OR  (
+        (YEAR(progs.deg_grant_date) = alum.cl_yr
+    OR
+        YEAR(progs.deg_grant_date) = alum.soc_clyr)
+    AND
+        TRIM(progs.deg) IN ("BA","BS")
+)
+OR (
+        (YEAR(progs.to_alum_date) = alum.cl_yr
+    OR
+        YEAR(progs.to_alum_date) = alum.soc_clyr)
+    AND
+        TRIM(progs.deg) IN ("BA","BS")
+)
 OR
-    alum.soc_clyr = progs.deg_grant_yr
+    (
+        NVL(progs.deg_grant_yr, 0) = 0
+        AND (
+            TRIM(progs.deg) IS NOT NULL AND TRIM(progs.deg) IN ("BA","BS")
+        )
+    )
 )
 LEFT JOIN
     major_table major1  ON  progs.major1 = major1.major
