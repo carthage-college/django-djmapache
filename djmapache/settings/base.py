@@ -1,7 +1,6 @@
-"""
-Django settings for project.
-"""
+# -*- coding: utf-8 -*-
 
+"""Django settings for project."""
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
