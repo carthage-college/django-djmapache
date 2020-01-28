@@ -23,14 +23,6 @@ from django.conf import settings
 import django
 django.setup()
 
-# from django.conf import settings
-# from djtreeater.core.adiron_asgn_ntfy import fn_notify
-
-# django settings for script
-# from django.db import connections
-# from djequis.core.utils import sendmail
-# from djtools.fields import TODAY
-
 from djtools.utils.mail import send_mail
 from djimix.core.utils import get_connection, xsql
 from handshake_sql import HANDSHAKE_QUERY
@@ -88,22 +80,6 @@ def fn_write_error(msg):
 def fn_clear_logger():
     logging.shutdown()
     return("Clear Logger")
-
-# WITH PYTHON 3, STR is UNICODE by default
-# def encode_rows_to_utf8(rows):
-#     encoded_rows = []
-#     for row in rows:
-#         try:
-#             encoded_row = []
-#             for value in row:
-#                 if isinstance(value, str):
-#                     value = value.decode('cp1252').encode("utf-8")
-#                 encoded_row.append(value)
-#             encoded_rows.append(encoded_row)
-#         except Exception as e:
-#             print("Error in encoded_rows routine " + repr(e))
-#             # fn_write_error("Error in encoded_rows routine " + repr(e))
-#     return encoded_rows
 
 def main():
     # It is necessary to create the boto3 client early because the call to
@@ -231,19 +207,15 @@ def main():
 
         if not test:
             print("Upload the file")
+            # client.upload_file(Filename=local_file_name, Bucket=bucket_name,
+            #                    Key=key_name)
+            # # # THIS IS WHAT IT SHOULD LOOK LIKE - IT WORKS DO NOT LOSE!
+            # # # client.upload_file(Filename='20190404_users.csv',
+            # # #            Bucket='handshake-importer-uploads',
+            # # #
+            # Key='importer-production-carthage/20190404_users.csv')
         else:
             print("bulid but do not upload")
-
-        # client.upload_file(Filename=local_file_name, Bucket=bucket_name,
-        #                    Key=key_name)
-
-
-        #
-        #
-        # # # THIS IS WHAT IT SHOULD LOOK LIKE - IT WORKS DO NOT LOSE!
-        # # # client.upload_file(Filename='20190404_users.csv',
-        # # #            Bucket='handshake-importer-uploads',
-        # # #            Key='importer-production-carthage/20190404_users.csv')
 
     except Exception as e:
 
