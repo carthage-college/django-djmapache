@@ -1,6 +1,7 @@
 # Ignore everything in this directory
 *.csv
 /scratch
+__init__.py
 
 # Except this file
 !.gitignore
