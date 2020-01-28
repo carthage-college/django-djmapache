@@ -1,0 +1,6 @@
+# Ignore everything in this directory
+*.csv
+/scratch
+
+# Except this file
+!.gitignore
