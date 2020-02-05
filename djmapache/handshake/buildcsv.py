@@ -193,7 +193,6 @@ def main():
                     csvWriter.writerow(row)
             file_out.close()
 
-
         # # Send the file to Handshake via AWS
         bucket_name = settings.HANDSHAKE_BUCKET
         object_name = (datestr + '_users.csv')
@@ -206,19 +205,19 @@ def main():
         #       + ", Key = " + key_name)
 
         if not test:
-            print("Upload the file")
-            # client.upload_file(Filename=local_file_name, Bucket=bucket_name,
-            #                    Key=key_name)
-            # # # THIS IS WHAT IT SHOULD LOOK LIKE - IT WORKS DO NOT LOSE!
-            # # # client.upload_file(Filename='20190404_users.csv',
-            # # #            Bucket='handshake-importer-uploads',
-            # # #
+            # print("Upload the file")
+            client.upload_file(Filename=local_file_name, Bucket=bucket_name,
+                               Key=key_name)
+            # # THIS IS WHAT IT SHOULD LOOK LIKE - IT WORKS DO NOT LOSE!
+            # # client.upload_file(Filename='20190404_users.csv',
+            # #            Bucket='handshake-importer-uploads',
+            # #
             # Key='importer-production-carthage/20190404_users.csv')
         else:
-            print("bulid but do not upload")
+            # print("bulid but do not upload")
+            pass
 
     except Exception as e:
-
         fn_write_error("Error in handshake buildcsv.py, Error = " + repr(e))
         SUBJECT = '[Handshake Application] Error'
         BODY = "Error in handshake buildcsv.py, Error = " + repr(e)
