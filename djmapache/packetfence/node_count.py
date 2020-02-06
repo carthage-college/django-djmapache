@@ -2,34 +2,19 @@
 
 import os, sys
 import requests
-import json
 
 # shell environment
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'djmapache.settings.shell')
 
 from django.conf import settings
 
+from djmapache.packetfence.utils import get_token
+
 API_EARL = settings.PACKETFENCE_API_EARL
 
 
-def get_token():
-    headers = {
-        'accept': 'application/json',
-        'Content-Type': 'application/json'
-    }
-    params = dict(
-        username=settings.PACKETFENCE_USERNAME,
-        password=settings.PACKETFENCE_PASSWORD
-    )
-    url = API_EARL + settings.PACKETFENCE_LOGIN_ENDPOINT
-    resp = requests.post(url=url, data=json.dumps(params), headers=headers, verify=False)
-    return json.loads(resp.content)['token']
-
-
 def main():
-    """
-    display the number of nodes
-    """
+    """Display the number of nodes."""
     token = get_token()
     print(token)
     headers = dict(
@@ -42,10 +27,6 @@ def main():
         print(c,item)
     print(len(data['items']))
 
-
-######################
-# shell command line
-######################
 
 if __name__ == "__main__":
 
