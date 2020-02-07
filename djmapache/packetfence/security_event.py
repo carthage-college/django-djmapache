@@ -62,8 +62,9 @@ def main():
     if test:
         print(headers)
 
-    data = {'security_event_id':'{0}','mac':'{1}'}.format(sid, mac)
-
+    data = '{{"security_event_id": "{0}", "mac": "{1}"}}'.format(sid, mac)
+    if test:
+        print(data)
     url = '{0}{1}/{2}/{3}'.format(
         API_EARL, settings.PACKETFENCE_NODE_ENDPOINT, mac, action,
     )
@@ -81,6 +82,8 @@ def main():
 if __name__ == "__main__":
     args = parser.parse_args()
     mac = args.mac
+    sid = args.sid
+    action = args.action
     test = args.test
 
     if test:
