@@ -16,7 +16,7 @@ import logging
 from logging.handlers import SMTPHandler
 
 # env
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djmapache.settings.shell")
 from django.conf import settings
 
 # prime django
