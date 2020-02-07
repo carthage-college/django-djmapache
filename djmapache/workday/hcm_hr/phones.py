@@ -14,6 +14,8 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djlabour.settings.shell")
 django.setup()
 
 # django settings for script
+import openpyxl
+from openpyxl import Workbook
 from django.conf import settings
 from djimix.core.utils import get_connection, xsql
 from djmapache.workday.hcm_hr.utilities import fn_format_country, \
@@ -104,7 +106,29 @@ parser.add_argument(
 # 
 #     sftp.close()
 
+def fn_get_id(adp_id, EARL):
+    try:
+        connection = get_connection(EARL)
+        # connection closes when exiting the 'with' block
+        QUERY = '''select cx_id_char 
+            from cvid_rec where adp_id = {0}'''.format(adp_id)
 
+        with connection:
+            data_result = xsql(
+                QUERY, connection, key=settings.INFORMIX_DEBUG
+            ).fetchone()
+            return data_result[0].strip()
+            # print(data_result[0])
+            # ret = data_result[0]
+            # print("Carthage id is: " + ret)
+
+    except Exception as e:
+        print("Error in phone_rec.py fn_get_id , Error = " + repr(e))
+        # fn_write_error("Error in phone_rec.py - fn_get_id: "
+        #                + repr(e))
+        # fn_send_mail(settings.ADP_TO_EMAIL, settings.ADP_FROM_EMAIL,
+        #          "Error in phone_rec.py fn_get_id, Error = " + repr(e),
+        #          "Error in phone_rec.py fn_get_id")
 
 def main():
 
@@ -140,7 +164,7 @@ def main():
             # care of this scenario and we will never arrive here.
             EARL = None
             # establish database connection
-        print(EARL)
+        # print(EARL)
 
         # Pull the file from the ADP FTP site
         # execute sftp code in production only
@@ -152,6 +176,31 @@ def main():
 
         # Read the raw file and work on the formatting
         # print(raw_phone_file)
+
+        # #+++++++++++++++++++++++++++++++++++++
+        # #+++++++++++++++++++++++++++++++++++++
+        # #+++++++++++++++++++++++++++++++++++++
+        # # This will enable me to write directly to the workbook...
+        # print("Test Excel")
+        # # workbook = Workbook()
+        # # sheet = workbook.active
+        # # sheet["A1"] = "hello"
+        # # workbook.save(filename=phone_csv_output + "phones.xlsx")
+        #
+        # # workbook object is created
+        # wb_obj = openpyxl.load_workbook(phone_csv_output + "phones.xlsx")
+        # # print(wb_obj.sheetnames)
+        # this_sheet = wb_obj['Phones']
+        # print(this_sheet)
+        # this_sheet['A2'] = "world"
+        # this_sheet.cell(row=1, column=2).value = 'HEY'
+        # wb_obj.save(phone_csv_output + "phones.xlsx")
+        # #+++++++++++++++++++++++++++++++++++++
+        # #+++++++++++++++++++++++++++++++++++++
+        # #+++++++++++++++++++++++++++++++++++++
+
+
+
 
         with open(raw_phone_file, 'r') as f:
             d_reader = csv.DictReader(f, delimiter=',')
@@ -169,9 +218,10 @@ def main():
                     if row['File Number'] == "":
                         print("No id or file number")
                         pass
-
                     else:
-                        workerid = "1" + row['File Number']
+                        # print(str(row['File Number']))
+                        workerid = fn_get_id(str(row['File Number']), EARL)
+                        # print(workerid)
                 else:
                     workerid = row['Carthage ID #']
 
@@ -233,7 +283,6 @@ def main():
         #          "Error in phone_rec.py")
 
 if __name__ == "__main__":
-    main()
     args = parser.parse_args()
     test = args.test
     database = args.database
