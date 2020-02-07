@@ -39,7 +39,6 @@ def fn_format_phone(cntry_code, phone):
     return intlcode, area, phon
 
 def fn_write_phone_cl_header(file):
-    print(file)
     with open(file, 'w') as phone_output:
         csvwriter = csv.writer(phone_output)
         csvwriter.writerow(["Worker ID", "Phone Type", "Country (Phone)",
@@ -48,7 +47,6 @@ def fn_write_phone_cl_header(file):
 
 
 def fn_write_phone_cl(file, data):
-    print(file)
     with open(file, 'a') as phone_output:
         csvwriter = csv.writer(phone_output)
         csvwriter.writerow(data)
