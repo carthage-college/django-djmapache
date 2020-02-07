@@ -8,5 +8,7 @@ openpyxl==2.6.3
 requests==2.22.0
 pycryptodome==3.9.0
 python-memcached==1.59
+awscli==1.17.11
+botocore==1.14.11
+s3transfer==0.3.2
 wemake-python-styleguide==0.13.3
-

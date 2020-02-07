@@ -6,7 +6,7 @@
 import os
 
 # sqlserver connection string
-from djimix.settings.local import MSSQL_EARL
+from djimix.settings.local import LENEL_EARL, MSSQL_EARL
 from djimix.settings.local import INFORMIX_ODBC, INFORMIX_ODBC_TRAIN
 from djimix.settings.local import (
     INFORMIXSERVER,
