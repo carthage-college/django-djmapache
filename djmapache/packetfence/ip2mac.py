@@ -1,18 +1,19 @@
+#! /usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import os, sys
+import os
+import sys
 import requests
 import argparse
+import logging
 
-# shell environment
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'djmapache.settings.shell')
+from utils import logger_init
+from utils.helpers import get_token
+from settings.local import API_EARL
+from settings.local import IP4LOGS_ENDPOINT
 
-from django.conf import settings
-
-from djmapache.packetfence.utils import get_token
-
-API_EARL = settings.PACKETFENCE_API_EARL
-
+# initialise the logger
+logger = logging.getLogger("__main__")
 
 # set up command-line options
 desc = """
@@ -50,7 +51,7 @@ def main():
     if test:
         print(headers)
     url = '{0}{1}/ip2mac/{2}'.format(
-        API_EARL, settings.PACKETFENCE_IP4LOGS_ENDPOINT, ip
+        API_EARL, IP4LOGS_ENDPOINT, ip
     )
     if test:
         print(url)
@@ -59,6 +60,8 @@ def main():
     if test:
         print(data)
 
+    logger.info("IP: {0}".format(ip))
+    logger.info("MAC: {0}".format(data['mac']))
     for count, item in enumerate(data):
         print(count,item,data[item])
 
