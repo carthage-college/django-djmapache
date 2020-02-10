@@ -1,16 +1,12 @@
+#! /usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import os, sys
 import requests
 
-# shell environment
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'djmapache.settings.shell')
-
-from django.conf import settings
-
-from djmapache.packetfence.utils import get_token
-
-API_EARL = settings.PACKETFENCE_API_EARL
+from settings.local import API_EARL
+from settings.local import REPORTS_ENDPOINT
+from utils.helpers import get_token
 
 
 def main():
@@ -20,7 +16,7 @@ def main():
     headers = dict(
         accept='application/json', Authorization=token
     )
-    url = '{}{}/active'.format(API_EARL, settings.PACKETFENCE_REPORTS_ENDPOINT)
+    url = '{}{}/active'.format(API_EARL, REPORTS_ENDPOINT)
     resp = requests.get(url=url, headers=headers, verify=False)
     data = resp.json()
     for c, item in enumerate(data['items']):
