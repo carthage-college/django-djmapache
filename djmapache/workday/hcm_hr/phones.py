@@ -130,6 +130,32 @@ def fn_get_id(adp_id, EARL):
         #          "Error in phone_rec.py fn_get_id, Error = " + repr(e),
         #          "Error in phone_rec.py fn_get_id")
 
+def fn_insert_xl(ct, workerid, phon_typ, cntry, intlcode, area, phon, public,
+                 phone_csv_output):
+
+    try:
+        wb_obj = openpyxl.load_workbook(phone_csv_output + "phones.xlsx")
+        # # print(wb_obj.sheetnames)
+        this_sheet = wb_obj['Phones']
+        # print(this_sheet)
+        this_sheet.cell(row=ct, column=1).value = workerid
+        this_sheet.cell(row=ct, column=2).value = phon_typ
+        this_sheet.cell(row=ct, column=3).value = cntry
+        this_sheet.cell(row=ct, column=4).value = intlcode
+        this_sheet.cell(row=ct, column=5).value = area
+        this_sheet.cell(row=ct, column=6).value = phon
+        this_sheet.cell(row=ct, column=8).value = 'Public'
+
+        wb_obj.save(phone_csv_output + "phones.xlsx")
+
+    except Exception as e:
+        print("Error in phone_rec.py fn_ins_xl , Error = " + repr(e))
+    # fn_write_error("Error in phone_rec.py - fn_get_id: "
+    #                + repr(e))
+    # fn_send_mail(settings.ADP_TO_EMAIL, settings.ADP_FROM_EMAIL,
+    #          "Error in phone_rec.py fn_get_id, Error = " + repr(e),
+    #          "Error in phone_rec.py fn_get_id")
+
 def main():
 
     ##########################################################################
@@ -171,44 +197,23 @@ def main():
         # if not test:
         #     file_download()
 
-        # Create the new file for the formatted data
+        # Create the new csv file for the formatted data
         fn_write_phone_cl_header(new_phone_file)
 
         # Read the raw file and work on the formatting
         # print(raw_phone_file)
-
-        # #+++++++++++++++++++++++++++++++++++++
-        # #+++++++++++++++++++++++++++++++++++++
-        # #+++++++++++++++++++++++++++++++++++++
-        # # This will enable me to write directly to the workbook...
-        # print("Test Excel")
-        # # workbook = Workbook()
-        # # sheet = workbook.active
-        # # sheet["A1"] = "hello"
-        # # workbook.save(filename=phone_csv_output + "phones.xlsx")
-        #
-        # # workbook object is created
-        # wb_obj = openpyxl.load_workbook(phone_csv_output + "phones.xlsx")
-        # # print(wb_obj.sheetnames)
-        # this_sheet = wb_obj['Phones']
-        # print(this_sheet)
-        # this_sheet['A2'] = "world"
-        # this_sheet.cell(row=1, column=2).value = 'HEY'
-        # wb_obj.save(phone_csv_output + "phones.xlsx")
-        # #+++++++++++++++++++++++++++++++++++++
-        # #+++++++++++++++++++++++++++++++++++++
-        # #+++++++++++++++++++++++++++++++++++++
-
-
-
-
         with open(raw_phone_file, 'r') as f:
             d_reader = csv.DictReader(f, delimiter=',')
+            ct = 2  # Leave at 1 to skip the header row...
+            r = 0
+            # Write to Excel spreadsheet
+
             for row in d_reader:
                 # print("+++++++++++++++++++++")
                 # print(row)
-
-                print_flag = False
+                r = r+1
+                # print("ROW " + str(r))
+                # print("Inserts " + str(ct))
 
                 """Student workers and a few others typically don't have the
                     Carthage ID Custom field populated  May have to force it
@@ -238,7 +243,10 @@ def main():
                     phon_typ = "Home Phone"
                     fn_write_phone_cl(new_phone_file, [workerid + ','
                         + phon_typ + ',' + cntry + ',' + intlcode + ','
-                        + area + ',' + phon + ',' + '' + ',' + 'Public'])
+                        + area + ',' + phon + ',' + '' + ',' + 'No'])
+                    ct = ct + 1
+                    fn_insert_xl(ct, workerid, phon_typ, cntry, intlcode, area,
+                                 phon, 'public', phone_csv_output)
 
                 if len(row['Personal Contact: Personal Mobile']) != 0:
                     ret = fn_format_phone(row['Primary Address: Country Code'],
@@ -249,7 +257,10 @@ def main():
                     phon_typ = "Personal Mobile"
                     fn_write_phone_cl(new_phone_file, [workerid + ','
                         + phon_typ + ',' + cntry + ',' + intlcode + ','
-                        + area + ',' + phon + ',' + '' + ',' + 'Public'])
+                        + area + ',' + phon + ',' + '' + ',' + 'No'])
+                    ct = ct + 1
+                    fn_insert_xl(ct, workerid, phon_typ, cntry, intlcode, area,
+                                 phon, 'public', phone_csv_output)
 
                 if len(row['Work Contact: Work Phone']) != 0:
                     ret = fn_format_phone(row['Primary Address: Country Code'],
@@ -260,7 +271,10 @@ def main():
                     phon_typ = "Work Office"
                     fn_write_phone_cl(new_phone_file, [workerid + ','
                         + phon_typ + ',' + cntry + ',' + intlcode + ','
-                        + area + ',' + phon + ',' + '' + ',' + 'Public'])
+                        + area + ',' + phon + ',' + '' + ',' + 'No'])
+                    ct = ct + 1
+                    fn_insert_xl(ct, workerid, phon_typ, cntry, intlcode, area,
+                                 phon, 'public', phone_csv_output)
 
                 if len(row['Work Contact: Work Mobile']) != 0:
                     ret = fn_format_phone(
@@ -272,7 +286,10 @@ def main():
                     phon_typ = "Work Mobile"
                     fn_write_phone_cl(new_phone_file, [workerid + ','
                         + phon_typ + ',' + cntry + ',' + intlcode + ','
-                        + area + ',' + phon + ',' + '' + ',' + 'Public'])
+                        + area + ',' + phon + ',' + '' + ',' + 'No'])
+                    ct = ct + 1
+                    fn_insert_xl(ct, workerid, phon_typ, cntry, intlcode, area,
+                                 phon, 'public', phone_csv_output)
 
     except Exception as e:
         print("Error in phone_rec.py, Error = " + repr(e))
