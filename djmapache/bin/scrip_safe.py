@@ -15,6 +15,7 @@ from reportlab.lib.units import inch
 from reportlab.platypus import PageBreak
 from reportlab.platypus import Preformatted
 from reportlab.platypus import SimpleDocTemplate
+
 import pysftp
 
 
@@ -113,8 +114,8 @@ def main():
         'private_key': settings.SCRIP_SAFE_XTRNL_KEY,
         'cnopts': cnopts,
     }
-    '''
     # transfer the PDFs to scripsafe
+    '''
     with pysftp.Connection(**xtrnl_connection) as sftpx:
         for pdf in philes:
             if test:
