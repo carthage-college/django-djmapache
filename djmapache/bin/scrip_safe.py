@@ -6,6 +6,7 @@ import os
 import re
 import sys
 
+import pysftp
 from django.conf import settings
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.pagesizes import portrait
@@ -15,8 +16,6 @@ from reportlab.lib.units import inch
 from reportlab.platypus import PageBreak
 from reportlab.platypus import Preformatted
 from reportlab.platypus import SimpleDocTemplate
-
-import pysftp
 
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'djmapache.settings.shell')
@@ -68,12 +67,12 @@ def paint_pdf(phile):
         if reg.search(line):
             lines.append(PageBreak())
         lines.append(Preformatted(
-            line.decode('cp1252').encode('utf-8'), styles['CodeSmall'],
+            line, styles['CodeSmall'],
         ))
     doc.build(lines)
 
     # Write the PDF to a file
-    with open('{0}.pdf'.format(phile.name), 'w') as fd:
+    with open('{0}.pdf'.format(phile.name), 'wb') as fd:
         fd.write(buf.getvalue())
 
 
@@ -95,9 +94,11 @@ def main():
                         paint_pdf(fo)
                     philes.append(phile)
                     # delete original since we have a copy
-                    if not test:
-                        sftp.remove(phile)
+                    sftp.remove(phile)
                 except IOError as ioerror:
+                    print("failed to remove files from local file system: {0}".format(
+                        settings.SCRIP_SAFE_LOCAL_PATH
+                    ))
                     print("I/O error({0}): {1}".format(
                         ioerror.errno, ioerror.strerror,
                     ))
@@ -115,7 +116,6 @@ def main():
         'cnopts': cnopts,
     }
     # transfer the PDFs to scripsafe
-    '''
     with pysftp.Connection(**xtrnl_connection) as sftpx:
         for pdf in philes:
             if test:
@@ -145,7 +145,6 @@ def main():
                     print("{0} {1}".format(pdfbak, oserror))
 
     print("files sent to script safe:\n{0}".format(philes))
-    '''
 
 
 if __name__ == '__main__':
