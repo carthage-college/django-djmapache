@@ -80,7 +80,7 @@ def main():
     """Main function for execution from command line."""
     # go to our storage directory on this server
     os.chdir(settings.SCRIP_SAFE_LOCAL_PATH)
-    # obtain a list of file names from transcript spool
+    # obtain a list of file names from transcript spool and fetch them
     philes = []
     with pysftp.Connection(**settings.SCRIP_SAFE_LOCAL_CONNECTION) as sftp:
         sftp.cwd(settings.SCRIP_SAFE_LOCAL_SPOOL)
@@ -94,7 +94,8 @@ def main():
                         paint_pdf(fo)
                     philes.append(phile)
                     # delete original since we have a copy
-                    sftp.remove(phile)
+                    if not test:
+                        sftp.remove(phile)
                 except IOError as ioerror:
                     print("I/O error({0}): {1}".format(
                         ioerror.errno, ioerror.strerror,
@@ -112,6 +113,7 @@ def main():
         'private_key': settings.SCRIP_SAFE_XTRNL_KEY,
         'cnopts': cnopts,
     }
+    '''
     # transfer the PDFs to scripsafe
     with pysftp.Connection(**xtrnl_connection) as sftpx:
         for pdf in philes:
@@ -142,6 +144,7 @@ def main():
                     print("{0} {1}".format(pdfbak, oserror))
 
     print("files sent to script safe:\n{0}".format(philes))
+    '''
 
 
 if __name__ == '__main__':
