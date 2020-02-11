@@ -333,3 +333,28 @@ HANDSHAKE_ACCESS_KEY = ''
 HANDSHAKE_SECRET = ''
 HANDSHAKE_BUCKET = ''
 HANDSHAKE_S3_FOLDER = ''
+# scripsafe
+#
+# external scripsafe server
+SCRIP_SAFE_XTRNL_SERVER = ''
+SCRIP_SAFE_XTRNL_USER = ''
+SCRIP_SAFE_XTRNL_KEY = '{}/scripsafe_rsa'.format(ROOT_DIR)
+# server on which our transcrip reside
+SCRIP_SAFE_LOCAL_SERVER = ''
+SCRIP_SAFE_LOCAL_USER = ''
+#SCRIP_SAFE_LOCAL_PASS = ''
+SCRIP_SAFE_LOCAL_KEY = ''
+SCRIP_SAFE_LOCAL_SPOOL = ''
+SCRIP_SAFE_LOCAL_BACKUP = ''
+SCRIP_SAFE_LOCAL_PATH = ''
+# transcrip file names start with 'cfa'
+SCRIP_SAFE_FILE_PREFIX = 'cfa'
+# SFTP connection dictionaries
+SCRIP_SAFE_XTRNL_CONNECTION = {
+    'host':SCRIP_SAFE_XTRNL_SERVER, 'username':SCRIP_SAFE_XTRNL_USER,
+    'private_key':SCRIP_SAFE_XTRNL_KEY
+}
+SCRIP_SAFE_LOCAL_CONNECTION = {
+    'host':SCRIP_SAFE_LOCAL_SERVER, 'username':SCRIP_SAFE_LOCAL_USER,
+    'private_key':SCRIP_SAFE_LOCAL_KEY
+}
