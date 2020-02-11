@@ -96,8 +96,8 @@ def main():
                     # delete original since we have a copy
                     sftp.remove(phile)
                 except IOError as ioerror:
-                    print("failed to remove files from local file system: {0}".format(
-                        settings.SCRIP_SAFE_LOCAL_PATH
+                    print("failed to remove files from file system: {0}".format(
+                        settings.SCRIP_SAFE_LOCAL_PATH,
                     ))
                     print("I/O error({0}): {1}".format(
                         ioerror.errno, ioerror.strerror,
