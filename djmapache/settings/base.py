@@ -372,3 +372,32 @@ TERRADOTTA_USER = ''
 TERRADOTTA_PKEY = ''
 TERRADOTTA_PASS = ''
 TERRADOTTA_CSV_OUTPUT = ''
+# oclc
+# external oclc server
+OCLC_XTRNL_SRVR = ''
+OCLC_XTRNL_USER = ''
+OCLC_XTRNL_PASS = ''
+OCLC_XTRNL_PATH = ''
+OCLC_LOCAL_PATH = ''
+# SFTP connection dictionaries
+OCLC_XTRNL_CONNECTION = {
+    'host': OCLC_XTRNL_SRVR,
+    'username': OCLC_XTRNL_USER,
+    'password': OCLC_XTRNL_PASS,
+}
+# oclc
+OCLC_TO_EMAIL = []
+OCLC_FROM_EMAIL = ''
+OCLC_GROUPINDEX_LIST_INDEX = 12
+# external oclc server
+OCLC_ENSXTRNL_SRVR = ''
+OCLC_ENSXTRNL_USER = ''
+OCLC_ENSXTRNL_PASS = ''
+OCLC_ENSXTRNL_PATH = ''
+OCLC_ENSLOCAL_PATH = ''
+# SFTP connection dictionaries
+OCLC_ENSXTRNL_CONNECTION = {
+    'host': OCLC_ENSXTRNL_SRVR,
+    'username': OCLC_ENSXTRNL_USER,
+    'password': OCLC_ENSXTRNL_PASS,
+}
