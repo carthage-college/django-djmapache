@@ -5,15 +5,13 @@ import csv
 import argparse
 import logging
 from logging.handlers import SMTPHandler
-
-# prime django
 import django
 
-# django settings for shell environment
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djlabour.settings.shell")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djmapache.settings.shell")
 django.setup()
+from django.conf import settings
 
-# django settings for script
+
 import openpyxl
 from openpyxl import Workbook
 from django.conf import settings
@@ -32,8 +30,8 @@ os.environ['INFORMIXSQLHOSTS'] = settings.INFORMIXSQLHOSTS
 os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
 os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
 
-# normally set as 'debug" in SETTINGS
-DEBUG = settings.INFORMIX_DEBUG
+# # normally set as 'debug" in SETTINGS
+# DEBUG = settings.INFORMIX_DEBUG
 
 # set up command-line options
 desc = """
@@ -110,7 +108,7 @@ def fn_get_id(adp_id, EARL):
     try:
         connection = get_connection(EARL)
         # connection closes when exiting the 'with' block
-        QUERY = '''select cx_id_char 
+        QUERY = '''select cx_id_char
             from cvid_rec where adp_id = {0}'''.format(adp_id)
 
         with connection:
@@ -135,9 +133,12 @@ def fn_insert_xl(ct, workerid, phon_typ, cntry, intlcode, area, phon, public,
 
     try:
         wb_obj = openpyxl.load_workbook(phone_csv_output + "phones.xlsx")
+        # this may be the syntax to open a pwd protecte xls..
+        # wb_obj.protection.password = ''
+
         # # print(wb_obj.sheetnames)
-        this_sheet = wb_obj['Phones']
-        # print(this_sheet)
+        this_sheet = wb_obj['Phone']
+        print(this_sheet)
         this_sheet.cell(row=ct, column=1).value = workerid
         this_sheet.cell(row=ct, column=2).value = phon_typ
         this_sheet.cell(row=ct, column=3).value = cntry
@@ -215,8 +216,10 @@ def main():
                 # print("ROW " + str(r))
                 # print("Inserts " + str(ct))
 
-                """Student workers and a few others typically don't have the
-                    Carthage ID Custom field populated  May have to force it
+                """Student workers and a few others typically 
+                don't have the
+                    Carthage ID Custom field populated  May have 
+                    to force it
                     here"""
                 if row['Carthage ID #'] == "":
                 #     print('No Carth ID  ' + row['File Number'])
@@ -230,8 +233,10 @@ def main():
                 else:
                     workerid = row['Carthage ID #']
 
-                """Format country and phone - I don't know if our ADP  data 
-                    has any phone numbers that aren't in the US format"""
+                """Format country and phone - I don't know if our 
+                ADP  data
+                    has any phone numbers that aren't in the US 
+                    format"""
                 cntry = fn_format_country(row['Primary Address: Country Code'])
 
                 if len(row['Personal Contact: Home Phone']) != 0:
@@ -242,24 +247,28 @@ def main():
                     phon = ret[2]
                     phon_typ = "Home Phone"
                     fn_write_phone_cl(new_phone_file, [workerid + ','
-                        + phon_typ + ',' + cntry + ',' + intlcode + ','
+                        + phon_typ + ',' + cntry + ',' + intlcode
+                        + ','
                         + area + ',' + phon + ',' + '' + ',' + 'No'])
                     ct = ct + 1
-                    fn_insert_xl(ct, workerid, phon_typ, cntry, intlcode, area,
+                    fn_insert_xl(ct, workerid, phon_typ, cntry,
+                    intlcode, area,
                                  phon, 'public', phone_csv_output)
 
                 if len(row['Personal Contact: Personal Mobile']) != 0:
                     ret = fn_format_phone(row['Primary Address: Country Code'],
-                                       row['Personal Contact: Personal Mobile'])
+                                   row['Personal Contact: Personal Mobile'])
                     intlcode = ret[0]
                     area = ret[1]
                     phon = ret[2]
                     phon_typ = "Personal Mobile"
                     fn_write_phone_cl(new_phone_file, [workerid + ','
-                        + phon_typ + ',' + cntry + ',' + intlcode + ','
+                        + phon_typ + ',' + cntry + ',' + intlcode
+                        + ','
                         + area + ',' + phon + ',' + '' + ',' + 'No'])
                     ct = ct + 1
-                    fn_insert_xl(ct, workerid, phon_typ, cntry, intlcode, area,
+                    fn_insert_xl(ct, workerid, phon_typ, cntry,
+                    intlcode, area,
                                  phon, 'public', phone_csv_output)
 
                 if len(row['Work Contact: Work Phone']) != 0:
@@ -270,10 +279,12 @@ def main():
                     phon = ret[2]
                     phon_typ = "Work Office"
                     fn_write_phone_cl(new_phone_file, [workerid + ','
-                        + phon_typ + ',' + cntry + ',' + intlcode + ','
+                        + phon_typ + ',' + cntry + ',' + intlcode
+                        + ','
                         + area + ',' + phon + ',' + '' + ',' + 'No'])
                     ct = ct + 1
-                    fn_insert_xl(ct, workerid, phon_typ, cntry, intlcode, area,
+                    fn_insert_xl(ct, workerid, phon_typ, cntry,
+                    intlcode, area,
                                  phon, 'public', phone_csv_output)
 
                 if len(row['Work Contact: Work Mobile']) != 0:
@@ -285,11 +296,12 @@ def main():
                     phon = ret[2]
                     phon_typ = "Work Mobile"
                     fn_write_phone_cl(new_phone_file, [workerid + ','
-                        + phon_typ + ',' + cntry + ',' + intlcode + ','
+                        + phon_typ + ',' + cntry + ',' + intlcode
+                        + ','
                         + area + ',' + phon + ',' + '' + ',' + 'No'])
                     ct = ct + 1
-                    fn_insert_xl(ct, workerid, phon_typ, cntry, intlcode, area,
-                                 phon, 'public', phone_csv_output)
+                    # fn_insert_xl(ct, workerid, phon_typ, cntry, intlcode,
+                    # area, phon, 'public', phone_csv_output)
 
     except Exception as e:
         print("Error in phone_rec.py, Error = " + repr(e))
