@@ -15,6 +15,16 @@ from djimix.core.utils import xsql
 # django settings for shell environment
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djmapache.settings.shell")
 
+# informix environment
+os.environ['INFORMIXSERVER'] = settings.INFORMIXSERVER
+os.environ['DBSERVERNAME'] = settings.DBSERVERNAME
+os.environ['INFORMIXDIR'] = settings.INFORMIXDIR
+os.environ['ODBCINI'] = settings.ODBCINI
+os.environ['ONCONFIG'] = settings.ONCONFIG
+os.environ['INFORMIXSQLHOSTS'] = settings.INFORMIXSQLHOSTS
+os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
+os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
+
 
 def main():
     """Terradotta Synchronization."""
@@ -24,8 +34,7 @@ def main():
     with open(phile) as incantation:
         sql = incantation.read()
 
-    connection = get_connection()
-    with connection:
+    with get_connection() as connection:
         rows = xsql(sql, connection, key=settings.INFORMIX_DEBUG).fetchall()
 
     if rows:
