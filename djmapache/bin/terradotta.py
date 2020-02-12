@@ -2,18 +2,18 @@
 
 import csv
 import os
-import pysftp
 import shutil
 import sys
 import time
 
+import pysftp
 from django.conf import settings
 from djimix.core.utils import get_connection
 from djimix.core.utils import xsql
 
 
 # django settings for shell environment
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djmapache.settings.shell")
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'djmapache.settings.shell')
 
 # informix environment
 os.environ['INFORMIXSERVER'] = settings.INFORMIXSERVER
@@ -38,7 +38,7 @@ def main():
         rows = xsql(sql, connection, key=settings.INFORMIX_DEBUG).fetchall()
 
     if rows:
-        datetimestr = time.strftime("%Y%m%d-%H%M%S")
+        datetimestr = time.strftime('%Y%m%d-%H%M%S')
         filename = ('{0}terradotta_{1}.csv'.format(
             settings.TERRADOTTA_CSV_OUTPUT, datetimestr,
         ))
@@ -111,14 +111,10 @@ def main():
             'cnopts': cnopts,
         }
         with pysftp.Connection(**xtrnl_connection) as sftp:
-            sftp.put("sis_hr_user_info.txt", preserve_mtime=True)
+            sftp.put('sis_hr_user_info.txt', preserve_mtime=True)
             sftp.close()
-    else:
-        print("No results returned from the database")
-
-    print("Done")
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
 
     sys.exit(main())
