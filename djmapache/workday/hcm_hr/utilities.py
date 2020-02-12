@@ -50,3 +50,14 @@ def fn_write_phone_cl(file, data):
     with open(file, 'a') as phone_output:
         csvwriter = csv.writer(phone_output)
         csvwriter.writerow(data)
+
+def fn_write_email_cl_header(file):
+    with open(file, 'w') as email_output:
+        csvwriter = csv.writer(email_output)
+        csvwriter.writerow(["Worker ID", "Email Type", "Email Address",
+                            "Public"])
+
+def fn_write_email_cl(file, data):
+    with open(file, 'a') as email_output:
+        csvwriter = csv.writer(email_output)
+        csvwriter.writerow(data)
