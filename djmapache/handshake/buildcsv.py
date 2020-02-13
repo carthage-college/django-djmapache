@@ -23,7 +23,6 @@ from django.conf import settings
 import django
 django.setup()
 
-from djtools.utils.mail import send_mail
 from djimix.core.utils import get_connection, xsql
 from handshake_sql import HANDSHAKE_QUERY
 
