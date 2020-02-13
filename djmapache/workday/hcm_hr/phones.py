@@ -17,7 +17,7 @@ from openpyxl import Workbook
 from django.conf import settings
 from djimix.core.utils import get_connection, xsql
 from djmapache.workday.hcm_hr.utilities import fn_format_country, \
-    fn_format_phone, fn_write_phone_cl_header, fn_write_phone_cl
+    fn_format_phone, fn_write_phone_cl_header, fn_write_phone_cl, fn_get_id
 
 
 # informix environment
@@ -104,33 +104,9 @@ parser.add_argument(
 # 
 #     sftp.close()
 
-def fn_get_id(adp_id, EARL):
-    try:
-        connection = get_connection(EARL)
-        # connection closes when exiting the 'with' block
-        QUERY = '''select cx_id_char
-            from cvid_rec where adp_id = {0}'''.format(adp_id)
 
-        with connection:
-            data_result = xsql(
-                QUERY, connection, key=settings.INFORMIX_DEBUG
-            ).fetchone()
-            return data_result[0].strip()
-            # print(data_result[0])
-            # ret = data_result[0]
-            # print("Carthage id is: " + ret)
-
-    except Exception as e:
-        print("Error in phone_rec.py fn_get_id , Error = " + repr(e))
-        # fn_write_error("Error in phone_rec.py - fn_get_id: "
-        #                + repr(e))
-        # fn_send_mail(settings.ADP_TO_EMAIL, settings.ADP_FROM_EMAIL,
-        #          "Error in phone_rec.py fn_get_id, Error = " + repr(e),
-        #          "Error in phone_rec.py fn_get_id")
-
-
-def fn_clear_sheet(email_csv_output, new_xl_file):
-    wb_obj = openpyxl.load_workbook(email_csv_output + new_xl_file)
+def fn_clear_sheet(csv_output, new_xl_file):
+    wb_obj = openpyxl.load_workbook(csv_output + new_xl_file)
     this_sheet = wb_obj['Phone']
     print(this_sheet)
     row_count = this_sheet.max_row
@@ -145,13 +121,13 @@ def fn_clear_sheet(email_csv_output, new_xl_file):
             cell.value = ""
             # print(cell.value)
 
-    wb_obj.save(email_csv_output + new_xl_file)
+    wb_obj.save(csv_output + new_xl_file)
 
 def fn_insert_xl(ct, workerid, phon_typ, cntry, intlcode, area, phon, public,
-                 phone_csv_output, new_xl_file):
+                 csv_output, new_xl_file):
 
     try:
-        wb_obj = openpyxl.load_workbook(phone_csv_output
+        wb_obj = openpyxl.load_workbook(csv_output
                                         + new_xl_file)
         # this may be the syntax to open a pwd protected xls..
         # wb_obj.protection.password = ''
@@ -171,7 +147,7 @@ def fn_insert_xl(ct, workerid, phon_typ, cntry, intlcode, area, phon, public,
         this_sheet.cell(row=ct, column=6).value = phon
         this_sheet.cell(row=ct, column=8).value = 'Public'
 
-        wb_obj.save(phone_csv_output + new_xl_file)
+        wb_obj.save(csv_output + new_xl_file)
 
     except Exception as e:
         print("Error in phone_rec.py fn_ins_xl , Error = " + repr(e))
@@ -190,21 +166,21 @@ def main():
 
     # # Defines file names and directory location
     # if test:
-    phone_csv_output = "/home/dsullivan/djmapache/djmapache/workday/hcm_hr/" \
+    csv_output = "/home/dsullivan/djmapache/djmapache/workday/hcm_hr/" \
                             "clean_data/"
-    phone_csv_input = "/home/dsullivan/djmapache/djmapache/workday/hcm_hr/" \
+    csv_input = "/home/dsullivan/djmapache/djmapache/workday/hcm_hr/" \
                              "raw_data/"
     # else:
-    # phone_csv_output = settings.phone_csv_output
-    # print(phone_csv_output)
+    # csv_output = settings.phone_csv_output
+    # print(csv_output)
 
     # For testing use last file
-    # new_phone_file = phone_csv_output + "ADPtoCXLast.csv"
-    raw_phone_file = phone_csv_input + "phones.csv"
-    new_phone_file = phone_csv_output + "phones_cln.csv"
+    # new_phone_file = csv_output + "ADPtoCXLast.csv"
+    raw_phone_file = csv_input + "phones.csv"
+    new_phone_file = csv_output + "phones_cln.csv"
     new_xl_file = "Worker Data.xlsx"
 
-    fn_clear_sheet(email_csv_output, new_xl_file)
+    fn_clear_sheet(csv_output, new_xl_file)
 
     try:
         # set global variable
@@ -257,7 +233,8 @@ def main():
                         pass
                     else:
                         # print(str(row['File Number']))
-                        workerid = fn_get_id(str(row['File Number']), EARL)
+                        workerid = fn_get_id(str(row['File Number']), EARL,
+                                             settings.INFORMIX_DEBUG)
                         # print(workerid)
                 else:
                     workerid = row['Carthage ID #']
@@ -281,7 +258,7 @@ def main():
                         + area + ',' + phon + ',' + '' + ',' + 'No'])
                     ct = ct + 1
                     fn_insert_xl(ct, workerid, phon_typ, cntry, intlcode, area,
-                                 phon, 'public', phone_csv_output, new_xl_file)
+                                 phon, 'public', csv_output, new_xl_file)
 
                 if len(row['Personal Contact: Personal Mobile']) != 0:
                     ret = fn_format_phone(row['Primary Address: Country Code'],
@@ -296,7 +273,7 @@ def main():
                         + area + ',' + phon + ',' + '' + ',' + 'No'])
                     ct = ct + 1
                     fn_insert_xl(ct, workerid, phon_typ, cntry, intlcode, area,
-                                 phon, 'public', phone_csv_output, new_xl_file)
+                                 phon, 'public', csv_output, new_xl_file)
 
                 if len(row['Work Contact: Work Phone']) != 0:
                     ret = fn_format_phone(row['Primary Address: Country Code'],
@@ -311,7 +288,7 @@ def main():
                         + area + ',' + phon + ',' + '' + ',' + 'No'])
                     ct = ct + 1
                     fn_insert_xl(ct, workerid, phon_typ, cntry, intlcode, area,
-                                 phon, 'public', phone_csv_output, new_xl_file)
+                                 phon, 'public', csv_output, new_xl_file)
 
                 if len(row['Work Contact: Work Mobile']) != 0:
                     ret = fn_format_phone(
@@ -327,7 +304,7 @@ def main():
                         + area + ',' + phon + ',' + '' + ',' + 'No'])
                     ct = ct + 1
                     fn_insert_xl(ct, workerid, phon_typ, cntry, intlcode,
-                        area, phon, 'public', phone_csv_output, new_xl_file)
+                        area, phon, 'public', csv_output, new_xl_file)
 
     except Exception as e:
         print("Error in phone_rec.py, Error = " + repr(e))
