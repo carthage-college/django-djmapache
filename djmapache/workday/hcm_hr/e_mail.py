@@ -19,7 +19,7 @@ from openpyxl import Workbook
 from django.conf import settings
 from djimix.core.utils import get_connection, xsql
 from djmapache.workday.hcm_hr.utilities import fn_write_email_cl_header, \
-    fn_write_email_cl
+    fn_write_email_cl, fn_get_id
 
 
 # informix environment
@@ -105,30 +105,30 @@ parser.add_argument(
 #                 "Error in phone_rec.py - File download")
 #
 #     sftp.close()
-
-def fn_get_id(adp_id, EARL):
-    try:
-        connection = get_connection(EARL)
-        # connection closes when exiting the 'with' block
-        QUERY = '''select cx_id_char 
-            from cvid_rec where adp_id = {0}'''.format(adp_id)
-
-        with connection:
-            data_result = xsql(
-                QUERY, connection, key=settings.INFORMIX_DEBUG
-            ).fetchone()
-            return data_result[0].strip()
-            # print(data_result[0])
-            # ret = data_result[0]
-            # print("Carthage id is: " + ret)
-
-    except Exception as e:
-        print("Error in e_rec.py fn_get_id , Error = " + repr(e))
-        # fn_write_error("Error in email_rec.py - fn_get_id: "
-        #                + repr(e))
-        # fn_send_mail(settings.ADP_TO_EMAIL, settings.ADP_FROM_EMAIL,
-        #          "Error in email_rec.py fn_get_id, Error = " + repr(e),
-        #          "Error in email_rec.py fn_get_id")
+#
+# def fn_get_id(adp_id, EARL):
+#     try:
+#         connection = get_connection(EARL)
+#         # connection closes when exiting the 'with' block
+#         QUERY = '''select cx_id_char
+#             from cvid_rec where adp_id = {0}'''.format(adp_id)
+#
+#         with connection:
+#             data_result = xsql(
+#                 QUERY, connection, key=settings.INFORMIX_DEBUG
+#             ).fetchone()
+#             return data_result[0].strip()
+#             # print(data_result[0])
+#             # ret = data_result[0]
+#             # print("Carthage id is: " + ret)
+#
+#     except Exception as e:
+#         print("Error in e_rec.py fn_get_id , Error = " + repr(e))
+#         # fn_write_error("Error in email_rec.py - fn_get_id: "
+#         #                + repr(e))
+#         # fn_send_mail(settings.ADP_TO_EMAIL, settings.ADP_FROM_EMAIL,
+#         #          "Error in email_rec.py fn_get_id, Error = " + repr(e),
+#         #          "Error in email_rec.py fn_get_id")
 
 
 def fn_clear_sheet(email_csv_output, new_xl_file):
@@ -228,49 +228,50 @@ def main():
 
         fn_clear_sheet(email_csv_output, new_xl_file)
 
-        # with open(raw_email_file, 'r') as f:
-        #     d_reader = csv.DictReader(f, delimiter=',')
-        #     ct = 2  # Leave at 1 to skip the header row...
-        #     r = 0
-        #     # Write to Excel spreadsheet
-        #
-        #     for row in d_reader:
-        #         # print("+++++++++++++++++++++")
-        #         # print(row)
-        #         r = r+1
-        #         # print("ROW " + str(r))
-        #         # print("Inserts " + str(ct))
-        #
-        #         """Student workers and a few others typically don't have the
-        #             Carthage ID Custom field populated  May have to force it
-        #             here"""
-        #         if row['Carthage ID #'] == "":
-        #         #     print('No Carth ID  ' + row['File Number'])
-        #             if row['File Number'] == "":
-        #                 print("No id or file number")
-        #                 pass
-        #             else:
-        #                 # print(str(row['File Number']))
-        #                 workerid = fn_get_id(str(row['File Number']), EARL)
-        #                 # print(workerid)
-        #         else:
-        #             workerid = row['Carthage ID #']
-        #
-        #         if len(row['Personal Contact: Personal Email']) != 0:
-        #             email_addr = row['Personal Contact: Personal Email']
-        #             fn_write_email_cl(new_email_file, [workerid, "Home",
-        #                  email_addr,  "No"])
-        #             ct = ct + 1
-        #             fn_insert_xl(ct, workerid, "Home", email_addr, "No",
-        #                          email_csv_output, new_xl_file)
-        #
-        #         if len(row['Work Contact: Work Email']) != 0:
-        #             email_addr = row['Work Contact: Work Email']
-        #             fn_write_email_cl(new_email_file, [workerid, "Work",
-        #                                                email_addr, "Yes"])
-        #             ct = ct + 1
-        #             fn_insert_xl(ct, workerid, "Work", email_addr, "Yes",
-        #                          email_csv_output, new_xl_file)
+        with open(raw_email_file, 'r') as f:
+            d_reader = csv.DictReader(f, delimiter=',')
+            ct = 2  # Leave at 1 to skip the header row...
+            r = 0
+            # Write to Excel spreadsheet
+
+            for row in d_reader:
+                # print("+++++++++++++++++++++")
+                # print(row)
+                r = r+1
+                # print("ROW " + str(r))
+                # print("Inserts " + str(ct))
+
+                """Student workers and a few others typically don't have the
+                    Carthage ID Custom field populated  May have to force it
+                    here"""
+                if row['Carthage ID #'] == "":
+                    print('No Carth ID  ' + row['File Number'])
+                    if row['File Number'] == "":
+                        print("No id or file number")
+                        pass
+                    else:
+                        # print(str(row['File Number']))
+                        workerid = fn_get_id(str(row['File Number']), EARL,
+                                settings.INFORMIX_DEBUG)
+                        print(workerid)
+                else:
+                    workerid = row['Carthage ID #']
+
+                if len(row['Personal Contact: Personal Email']) != 0:
+                    email_addr = row['Personal Contact: Personal Email']
+                    fn_write_email_cl(new_email_file, [workerid, "Home",
+                         email_addr,  "No"])
+                    ct = ct + 1
+                    fn_insert_xl(ct, workerid, "Home", email_addr, "No",
+                                 email_csv_output, new_xl_file)
+
+                if len(row['Work Contact: Work Email']) != 0:
+                    email_addr = row['Work Contact: Work Email']
+                    fn_write_email_cl(new_email_file, [workerid, "Work",
+                                                       email_addr, "Yes"])
+                    ct = ct + 1
+                    fn_insert_xl(ct, workerid, "Work", email_addr, "Yes",
+                                 email_csv_output, new_xl_file)
 
     except Exception as e:
         print("Error in email_rec.py, Error = " + repr(e))
