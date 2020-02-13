@@ -128,17 +128,41 @@ def fn_get_id(adp_id, EARL):
         #          "Error in phone_rec.py fn_get_id, Error = " + repr(e),
         #          "Error in phone_rec.py fn_get_id")
 
+
+def fn_clear_sheet(email_csv_output, new_xl_file):
+    wb_obj = openpyxl.load_workbook(email_csv_output + new_xl_file)
+    this_sheet = wb_obj['Phone']
+    print(this_sheet)
+    row_count = this_sheet.max_row
+    col_count = this_sheet.max_column
+    print(row_count)
+    print(col_count)
+
+    for row in this_sheet['A3:H' + str(row_count)]:
+        # print(row)
+        for cell in row:
+            # print(cell.value)
+            cell.value = ""
+            # print(cell.value)
+
+    wb_obj.save(email_csv_output + new_xl_file)
+
 def fn_insert_xl(ct, workerid, phon_typ, cntry, intlcode, area, phon, public,
-                 phone_csv_output):
+                 phone_csv_output, new_xl_file):
 
     try:
-        wb_obj = openpyxl.load_workbook(phone_csv_output + "phones.xlsx")
-        # this may be the syntax to open a pwd protecte xls..
+        wb_obj = openpyxl.load_workbook(phone_csv_output
+                                        + new_xl_file)
+        # this may be the syntax to open a pwd protected xls..
         # wb_obj.protection.password = ''
+        # After a fair amount of research, it seems that there is no easy
+        # way to use a password withing Python to pass to an Excel file
+        # May be easiest just to remove the password protection and re-enter
+        # it when the work is done.
 
         # # print(wb_obj.sheetnames)
         this_sheet = wb_obj['Phone']
-        print(this_sheet)
+        # print(this_sheet)
         this_sheet.cell(row=ct, column=1).value = workerid
         this_sheet.cell(row=ct, column=2).value = phon_typ
         this_sheet.cell(row=ct, column=3).value = cntry
@@ -147,7 +171,7 @@ def fn_insert_xl(ct, workerid, phon_typ, cntry, intlcode, area, phon, public,
         this_sheet.cell(row=ct, column=6).value = phon
         this_sheet.cell(row=ct, column=8).value = 'Public'
 
-        wb_obj.save(phone_csv_output + "phones.xlsx")
+        wb_obj.save(phone_csv_output + new_xl_file)
 
     except Exception as e:
         print("Error in phone_rec.py fn_ins_xl , Error = " + repr(e))
@@ -166,8 +190,10 @@ def main():
 
     # # Defines file names and directory location
     # if test:
-    phone_csv_output = "/home/dsullivan/djmapache/djmapache/workday/hcm_hr/clean_data/"
-    phone_csv_input = "/home/dsullivan/djmapache/djmapache/workday/hcm_hr/raw_data/"
+    phone_csv_output = "/home/dsullivan/djmapache/djmapache/workday/hcm_hr/" \
+                            "clean_data/"
+    phone_csv_input = "/home/dsullivan/djmapache/djmapache/workday/hcm_hr/" \
+                             "raw_data/"
     # else:
     # phone_csv_output = settings.phone_csv_output
     # print(phone_csv_output)
@@ -176,6 +202,9 @@ def main():
     # new_phone_file = phone_csv_output + "ADPtoCXLast.csv"
     raw_phone_file = phone_csv_input + "phones.csv"
     new_phone_file = phone_csv_output + "phones_cln.csv"
+    new_xl_file = "Worker Data.xlsx"
+
+    fn_clear_sheet(email_csv_output, new_xl_file)
 
     try:
         # set global variable
@@ -251,9 +280,8 @@ def main():
                         + ','
                         + area + ',' + phon + ',' + '' + ',' + 'No'])
                     ct = ct + 1
-                    fn_insert_xl(ct, workerid, phon_typ, cntry,
-                    intlcode, area,
-                                 phon, 'public', phone_csv_output)
+                    fn_insert_xl(ct, workerid, phon_typ, cntry, intlcode, area,
+                                 phon, 'public', phone_csv_output, new_xl_file)
 
                 if len(row['Personal Contact: Personal Mobile']) != 0:
                     ret = fn_format_phone(row['Primary Address: Country Code'],
@@ -267,9 +295,8 @@ def main():
                         + ','
                         + area + ',' + phon + ',' + '' + ',' + 'No'])
                     ct = ct + 1
-                    fn_insert_xl(ct, workerid, phon_typ, cntry,
-                    intlcode, area,
-                                 phon, 'public', phone_csv_output)
+                    fn_insert_xl(ct, workerid, phon_typ, cntry, intlcode, area,
+                                 phon, 'public', phone_csv_output, new_xl_file)
 
                 if len(row['Work Contact: Work Phone']) != 0:
                     ret = fn_format_phone(row['Primary Address: Country Code'],
@@ -283,9 +310,8 @@ def main():
                         + ','
                         + area + ',' + phon + ',' + '' + ',' + 'No'])
                     ct = ct + 1
-                    fn_insert_xl(ct, workerid, phon_typ, cntry,
-                    intlcode, area,
-                                 phon, 'public', phone_csv_output)
+                    fn_insert_xl(ct, workerid, phon_typ, cntry, intlcode, area,
+                                 phon, 'public', phone_csv_output, new_xl_file)
 
                 if len(row['Work Contact: Work Mobile']) != 0:
                     ret = fn_format_phone(
@@ -300,8 +326,8 @@ def main():
                         + ','
                         + area + ',' + phon + ',' + '' + ',' + 'No'])
                     ct = ct + 1
-                    # fn_insert_xl(ct, workerid, phon_typ, cntry, intlcode,
-                    # area, phon, 'public', phone_csv_output)
+                    fn_insert_xl(ct, workerid, phon_typ, cntry, intlcode,
+                        area, phon, 'public', phone_csv_output, new_xl_file)
 
     except Exception as e:
         print("Error in phone_rec.py, Error = " + repr(e))
