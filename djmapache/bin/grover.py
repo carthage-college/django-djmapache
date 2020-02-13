@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
 
-import os, sys
-import csv
 import argparse
-import logging
+import csv
+import django
 import json
+import logging
+import os
+import sys
 
-# env
+
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'djmapache.settings.shell')
 
 # required if using django models
-import django
 django.setup()
 
 from django.conf import settings
