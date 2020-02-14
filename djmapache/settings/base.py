@@ -426,3 +426,47 @@ CONCIERGE_CSV_OUTPUT = ''
 CONCIERGE_CSV_ARCHIVED = ''
 CONCIERGE_TO_EMAIL = []
 CONCIERGE_FROM_EMAIL = ''
+# maxient
+MAXIENT_HOST = ''
+MAXIENT_USER = ''
+MAXIENT_PKEY = ''
+MAXIENT_PASS = ''
+MAXIENT_CSV_OUTPUT = ''
+MAXIENT_TO_EMAIL = []
+MAXIENT_FROM_EMAIL = ''
+MAXIENT_HEADERS = [
+    'Carthage ID',
+    'Username',
+    'Last Name',
+    'First Name',
+    'Middle Name',
+    'Date of Birth',
+    'Gender',
+    'Ethnicity',
+    'Building',
+    'Room Number',
+    'Local Mailing Address',
+    'Local City',
+    'Local State',
+    'Local Zip',
+    'Local Phone',
+    'Cell Phone',
+    'Permanent Address',
+    'Permanent City',
+    'Permanent State',
+    'Permanent Zip',
+    'Permanent Country',
+    'Permanent Phone',
+    'Emergency Contact',
+    'Email Address',
+    'Classification',
+    'Academic Major',
+    'Academic Advisor',
+    'GPA Recent',
+    'GPA Cumulative',
+    'Athlete',
+    'Greek',
+    'Honors',
+    'ROTC Vet',
+    'Last Update',
+]
