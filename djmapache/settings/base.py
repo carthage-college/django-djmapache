@@ -470,3 +470,58 @@ MAXIENT_HEADERS = [
     'ROTC Vet',
     'Last Update',
 ]
+# Everbridge
+EVERBRIDGE_HOST = ''
+EVERBRIDGE_USER = ''
+EVERBRIDGE_PKEY = ''
+EVERBRIDGE_CSV_OUTPUT = ''
+EVERBRIDGE_TO_EMAIL = []
+EVERBRIDGE_FROM_EMAIL = ''
+EVERBRIDGE_FACSTAFF_HEADERS = [
+    'First Name',
+    'Middle Initial',
+    'Last Name',
+    'Suffix',
+    'External ID',
+    'Country',
+    'Business Name',
+    'Record Type',
+    'Phone 1',
+    'Phone Country 1',
+    'Phone 2',
+    'Phone Country 2',
+    'Email Address 1',
+    'Email Address 2',
+    'SMS 1',
+    'SMS 1 Country',
+    'Custom Field 1',
+    'Custom Value 1',
+    'Custom Field 2',
+    'Custom Value 2',
+    'Custom Field 3',
+    'Custom Value 3',
+    'END',
+]
+EVERBRIDGE_STUDENT_HEADERS = [
+    'First Name',
+    'Middle Initial',
+    'Last Name',
+    'Suffix',
+    'External ID',
+    'Country',
+    'Business Name',
+    'Record Type',
+    'Phone 1',
+    'Phone Country 1',
+    'Email Address 1',
+    'Email Address 2',
+    'SMS 1',
+    'SMS 1 Country',
+    'Custom Field 1',
+    'Custom Value 1',
+    'Custom Field 2',
+    'Custom Value 2',
+    'Custom Field 3',
+    'Custom Value 3',
+    'END',
+]

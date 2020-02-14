@@ -88,7 +88,7 @@ def file_upload(phile):
 
 
 def main():
-    """Barnes and Noble Upload."""
+    """package concierge upload."""
     # determines which database is being called from the command line
     if database == 'cars':
         earl = settings.INFORMIX_ODBC
