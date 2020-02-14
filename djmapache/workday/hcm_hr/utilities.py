@@ -75,6 +75,29 @@ def fn_format_phone(cntry_code, phone):
 
     return intlcode, area, phon
 
+def fn_format_cx_phone(cntry_code, phone):
+    if cntry_code == "USA":
+        intlcode = '1'
+        area = phone[1:4]
+        phon = phone[4:12]
+    elif cntry_code == "CAN":
+        intlcode = '1'
+        area = phone[1:4]
+        phon = phone[4:12]
+    # elif cntry_code == "CHN":
+    #     cntry = 'China'
+    # elif cntry_code == "DEU":
+    #     cntry = 'German'
+    # elif cntry_code == "SRB":
+    #     cntry = 'Serbia'
+    else:
+        intlcode = '1'
+        area = phone[1:4]
+        phon = phone[4:12]
+
+    return intlcode, area, phon
+
+
 def fn_write_phone_cl_header(file):
     with open(file, 'w') as phone_output:
         csvwriter = csv.writer(phone_output)
