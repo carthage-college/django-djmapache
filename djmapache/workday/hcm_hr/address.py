@@ -14,10 +14,13 @@ from django.conf import settings
 
 import openpyxl
 from openpyxl import Workbook
+from openpyxl.utils.cell import get_column_letter
+
 from django.conf import settings
 from djimix.core.utils import get_connection, xsql
 from djmapache.workday.hcm_hr.utilities import fn_format_country, \
-    fn_write_addr_cl_header, fn_write_addr_cl, fn_get_id
+    fn_write_addr_cl_header, fn_write_clean_file, fn_get_id, \
+    fn_format_cx_country
 
 
 # informix environment
@@ -50,78 +53,28 @@ parser.add_argument(
     help="database name.",
     dest="database"
 )
-#
-# def file_download():
-#     if test:
-#         adp_csv_output = "/home/dsullivan/djlabour/djlabour/testdata/"
-#     else:
-#         adp_csv_output = settings.ADP_CSV_OUTPUT
-#     # sFTP fetch (GET) downloads the file from ADP file from server
-#     # print("Get ADP File")
-#     cnopts = pysftp.CnOpts()
-#     cnopts.hostkeys = None
-#     # cnopts.hostkeys = settings.ADP_HOSTKEY
-#     # External connection information for ADP Application server
-#     XTRNL_CONNECTION = {
-#        'host': settings.ADP_HOST,
-#        'username': settings.ADP_USER,
-#        'password': settings.ADP_PASS,
-#        'cnopts': cnopts
-#     }
-#     with pysftp.Connection(**XTRNL_CONNECTION) as sftp:
-#         try:
-#             # print('Connection Established')
-#             sftp.chdir("adp/")
-#             # Remote Path is the ADP server and once logged in we fetch
-#             # directory listing
-#             remotepath = sftp.listdir()
-#             # Loop through remote path directory list
-#             # print("Remote Path = " + str(remotepath))
-#             for filename in remotepath:
-#                 remotefile = filename
-#                 # print("Remote File = " + str(remotefile))
-#                 # set local directory for which the ADP file will be
-#                 # downloaded to
-#                 local_dir = ('{0}'.format(
-#                     adp_csv_output
-#                 ))
-#                 localpath = local_dir + remotefile
-#                 # GET file from sFTP server and download it to localpath
-#                 sftp.get(remotefile, localpath)
-#                 #############################################################
-#                 # Delete original file %m_%d_%y_%h_%i_%s_Applications(%c).txt
-#                 # from sFTP (ADP) server
-#                 #############################################################
-#                 # sftp.remove(filename)
-#         except Exception as e:
-#             # print("Error in address.py- File download, " + e.message)
-#             fn_write_error("Error in address.py - File download, "
-#                            "adptocx.csv not found, " +  repr(e))
-#             fn_send_mail(settings.ADP_TO_EMAIL, settings.ADP_FROM_EMAIL,
-#                 "Error in address.py - File download, "
-#                 "adptocx.csv not found," + repr(e),
-#                 "Error in address.py - File download")
-#
-#     sftp.close()
 
 
-def fn_clear_sheet(email_csv_output, new_xl_file):
-    wb_obj = openpyxl.load_workbook(email_csv_output + new_xl_file)
-    this_sheet = wb_obj['Address']
+def fn_clear_sheet(csv_output, new_xl_file, sheet):
+    wb_obj = openpyxl.load_workbook(csv_output + new_xl_file)
+    this_sheet = wb_obj[sheet]
     print(this_sheet)
     row_count = this_sheet.max_row
     col_count = this_sheet.max_column
-    print(row_count)
-    print(col_count)
+    # print(row_count)
+    # print(col_count)
+    col = get_column_letter(col_count)
+    print(col)
 
-    for row in this_sheet['A3:N' + str(row_count)]:
+    for row in this_sheet['A3:'+ col + str(row_count)]:
         # print(row)
         for cell in row:
             # print(cell.value)
             cell.value = ""
             # print(cell.value)
 
-    wb_obj.save(email_csv_output + new_xl_file)
+    wb_obj.save(csv_output + new_xl_file)
+
 
 def fn_insert_xl(ct, workerid, cntry, addr_typ, addr_use, region, subregion,
                  city, city_subdv, postal_cod, addr1, addr2, addr3, addr4,
@@ -189,7 +142,7 @@ def main():
     new_file = csv_output + "address_cln.csv"
     new_xl_file = "Worker Data.xlsx"
 
-    fn_clear_sheet(csv_output, new_xl_file)
+    fn_clear_sheet(csv_output, new_xl_file, 'Address')
 
     try:
         # set global variable
@@ -275,7 +228,7 @@ def main():
                 #       postal_cod, addr1, addr2)
 
                 if row["Primary Address: Country Code"] == 'USA':
-                    fn_write_addr_cl(new_file, [workerid + ',' + cntry + ','
+                    fn_write_clean_file(new_file, [workerid + ',' + cntry + ','
                         + addr_typ + ',' + addr_use + ',' + region + ','
                         + subregion + ',' + city + ',' + city_subdv + ','
                         + postal_cod + ',' + addr1 + ',' + addr2 + ','
@@ -286,6 +239,70 @@ def main():
                         region, subregion, city, city_subdv, postal_cod,
                         addr1, addr2, addr3, addr4,  remote_EE,
                         csv_output, new_xl_file)
+
+
+        """Because we can't use the ADP info for student workers, we need to get 
+            that info from cx"""
+        # Get the student data via SQL query
+
+        stuquery = '''select CR.adp_associate_id, CR.adp_id, JR.id, 
+                trim(IR.ctry), trim(IR.st), trim(IR.city), trim(IR.addr_line1), 
+                trim(IR.addr_line2), trim(IR.addr_line3), trim(IR.zip), 
+                JR.hrpay, JR.beg_date, JR.end_date, JR.tpos_no, JR.job_title, 
+                JR.supervisor_no, JR.title_rank  
+                from job_rec JR
+                LEFT JOIN id_rec IR
+                ON JR.id = IR.id
+                join cvid_rec CR
+                on CR.cx_id = JR.id
+                where (JR.end_date is null  or JR.end_date > TODAY)
+                and JR.hrpay = 'DPW'
+                limit 10
+            '''
+
+        print(stuquery)
+
+        connection = get_connection(EARL)
+        with connection:
+            data_result = xsql(stuquery, connection).fetchall()
+            ret = list(data_result)
+            for i in ret:
+                cntry = fn_format_cx_country(i[3])
+                # cntry = row['Primary Address: Country Code']
+                addr_typ = "Primary Home"
+                addr_use = "Other - Home"
+                region = i[4]
+                subregion = ""
+                city = i[5]
+                city_subdv = ""
+                postal_cod = i[9]
+                addr1 = i[6]
+                addr2 = i[7]
+                addr3 = i[8]
+                addr4 = ""
+                remote_EE = ""
+
+                print(ct)
+                print(workerid + ',' + cntry + ','
+                     + addr_typ + ',' + addr_use + ',' + region + ','
+                     + subregion + ',' + city + ',' + city_subdv + ','
+                     + postal_cod + ',' + addr1 + ',' + addr2 + ','
+                     + addr3 + ',' + addr4 + ',' + remote_EE)
+
+                fn_write_clean_file(new_file, [workerid + ',' + cntry + ','
+                        + addr_typ + ',' + addr_use + ',' + region + ','
+                        + subregion + ',' + city + ',' + city_subdv + ','
+                        + postal_cod + ',' + addr1 + ',' + addr2 + ','
+                        + addr3 + ',' + addr4 + ',' + remote_EE])
+                ct = ct + 1
+            #
+            #     fn_insert_xl(ct, workerid, cntry, addr_typ, addr_use,
+            #         region, subregion, city, city_subdv, postal_cod,
+            #         addr1, addr2, addr3, addr4,  remote_EE,
+            #         csv_output, new_xl_file)
+
+
+        # Loop through and append data to csv and/or workbook
 
     except Exception as e:
         print("Error in address.py, Error = " + repr(e))
