@@ -34,7 +34,7 @@ os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
 
 TO = settings.CONCIERGE_TO_EMAIL
 FROM = settings.CONCIERGE_FROM_EMAIL
-DEBUG = settings.INFORMIX_DEBUG
+DEBUG = settings.DEBUG
 SUBJECT = 'Concierge Upload: {status}'.format
 
 desc = """
