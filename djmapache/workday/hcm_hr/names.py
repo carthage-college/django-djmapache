@@ -14,10 +14,12 @@ from django.conf import settings
 
 import openpyxl
 from openpyxl import Workbook
+from openpyxl.utils.cell import get_column_letter
+
 from django.conf import settings
 from djimix.core.utils import get_connection, xsql
 from djmapache.workday.hcm_hr.utilities import fn_format_country, \
-    fn_write_name_cl_header, fn_write_name_cl, fn_get_id
+    fn_write_name_cl_header, fn_write_clean_file, fn_get_id
 
 
 # informix environment
@@ -51,23 +53,27 @@ parser.add_argument(
     dest="database"
 )
 
-def fn_clear_sheet(email_csv_output, new_xl_file):
-    wb_obj = openpyxl.load_workbook(email_csv_output + new_xl_file)
-    this_sheet = wb_obj['Name']
+
+
+def fn_clear_sheet(csv_output, new_xl_file, sheet):
+    wb_obj = openpyxl.load_workbook(csv_output + new_xl_file)
+    this_sheet = wb_obj[sheet]
     print(this_sheet)
     row_count = this_sheet.max_row
     col_count = this_sheet.max_column
-    print(row_count)
-    print(col_count)
+    # print(row_count)
+    # print(col_count)
+    col = get_column_letter(col_count)
+    print(col)
 
-    for row in this_sheet['A3:N' + str(row_count)]:
+    for row in this_sheet['A3:'+ col + str(row_count)]:
         # print(row)
         for cell in row:
             # print(cell.value)
             cell.value = ""
             # print(cell.value)
 
-    wb_obj.save(email_csv_output + new_xl_file)
+    wb_obj.save(csv_output + new_xl_file)
 
 def fn_insert_xl(ct, workerid, worker_type, fname, mname,
                         lname, lgl_cntry, title, prefix, suffix,
@@ -130,13 +136,11 @@ def main():
     # csv_output = settings.csv_output
     # print(csv_output)
 
-    # For testing use last file
-    # new_file = csv_output + "ADPtoCXLast.csv"
     raw_file = csv_input + "names.csv"
     new_file = csv_output + "names_cln.csv"
     new_xl_file = "Worker Data.xlsx"
 
-    fn_clear_sheet(csv_output, new_xl_file)
+    fn_clear_sheet(csv_output, new_xl_file, 'Name')
 
     try:
         # set global variable
@@ -214,7 +218,7 @@ def main():
                 lgl_cntry = fn_format_country(row['Primary Address: Country Code'])
 
                 if len(row["Worker Category Description"].strip()) > 0:
-                    fn_write_name_cl(new_file, [workerid + ',' + worker_type
+                    fn_write_clean_file(new_file, [workerid + ',' + worker_type
                         + ',' + fname + ',' + mname + ',' + lname + ','
                         + lgl_cntry + ',' + title + ',' + prefix + ','
                         + suffix + ',' + pref_fname + ',' + pref_mname + ','
