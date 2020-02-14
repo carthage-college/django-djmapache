@@ -15,11 +15,13 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djmapache.settings.shell")
 
 # django settings for script
 import openpyxl
+from openpyxl.utils.cell import get_column_letter
+
 from openpyxl import Workbook
 from django.conf import settings
 from djimix.core.utils import get_connection, xsql
 from djmapache.workday.hcm_hr.utilities import fn_write_email_cl_header, \
-    fn_write_email_cl, fn_get_id
+    fn_write_clean_file, fn_get_id
 
 
 # informix environment
@@ -52,102 +54,28 @@ parser.add_argument(
     help="database name.",
     dest="database"
 )
-#
-# def file_download():
-#     if test:
-#         adp_csv_output = "/home/dsullivan/djlabour/djlabour/testdata/"
-#     else:
-#         adp_csv_output = settings.ADP_CSV_OUTPUT
-#     # sFTP fetch (GET) downloads the file from ADP file from server
-#     # print("Get ADP File")
-#     cnopts = pysftp.CnOpts()
-#     cnopts.hostkeys = None
-#     # cnopts.hostkeys = settings.ADP_HOSTKEY
-#     # External connection information for ADP Application server
-#     XTRNL_CONNECTION = {
-#        'host': settings.ADP_HOST,
-#        'username': settings.ADP_USER,
-#        'password': settings.ADP_PASS,
-#        'cnopts': cnopts
-#     }
-#     with pysftp.Connection(**XTRNL_CONNECTION) as sftp:
-#         try:
-#             # print('Connection Established')
-#             sftp.chdir("adp/")
-#             # Remote Path is the ADP server and once logged in we fetch
-#             # directory listing
-#             remotepath = sftp.listdir()
-#             # Loop through remote path directory list
-#             # print("Remote Path = " + str(remotepath))
-#             for filename in remotepath:
-#                 remotefile = filename
-#                 # print("Remote File = " + str(remotefile))
-#                 # set local directory for which the ADP file will be
-#                 # downloaded to
-#                 local_dir = ('{0}'.format(
-#                     adp_csv_output
-#                 ))
-#                 localpath = local_dir + remotefile
-#                 # GET file from sFTP server and download it to localpath
-#                 sftp.get(remotefile, localpath)
-#                 #############################################################
-#                 # Delete original file %m_%d_%y_%h_%i_%s_Applications(%c).txt
-#                 # from sFTP (ADP) server
-#                 #############################################################
-#                 # sftp.remove(filename)
-#         except Exception as e:
-#             # print("Error in phone_rec.py- File download, " + e.message)
-#             fn_write_error("Error in phone_rec.py - File download, "
-#                            "adptocx.csv not found, " +  repr(e))
-#             fn_send_mail(settings.ADP_TO_EMAIL, settings.ADP_FROM_EMAIL,
-#                 "Error in phone_rec.py - File download, "
-#                 "adptocx.csv not found," + repr(e),
-#                 "Error in phone_rec.py - File download")
-#
-#     sftp.close()
-#
-# def fn_get_id(adp_id, EARL):
-#     try:
-#         connection = get_connection(EARL)
-#         # connection closes when exiting the 'with' block
-#         QUERY = '''select cx_id_char
-#             from cvid_rec where adp_id = {0}'''.format(adp_id)
-#
-#         with connection:
-#             data_result = xsql(
-#                 QUERY, connection, key=settings.INFORMIX_DEBUG
-#             ).fetchone()
-#             return data_result[0].strip()
-#             # print(data_result[0])
-#             # ret = data_result[0]
-#             # print("Carthage id is: " + ret)
-#
-#     except Exception as e:
-#         print("Error in e_rec.py fn_get_id , Error = " + repr(e))
-#         # fn_write_error("Error in email_rec.py - fn_get_id: "
-#         #                + repr(e))
-#         # fn_send_mail(settings.ADP_TO_EMAIL, settings.ADP_FROM_EMAIL,
-#         #          "Error in email_rec.py fn_get_id, Error = " + repr(e),
-#         #          "Error in email_rec.py fn_get_id")
 
 
-def fn_clear_sheet(email_csv_output, new_xl_file):
-    wb_obj = openpyxl.load_workbook(email_csv_output + new_xl_file)
-    this_sheet = wb_obj['Email']
+def fn_clear_sheet(csv_output, new_xl_file, sheet):
+    wb_obj = openpyxl.load_workbook(csv_output + new_xl_file)
+    this_sheet = wb_obj[sheet]
     print(this_sheet)
     row_count = this_sheet.max_row
     col_count = this_sheet.max_column
-    print(row_count)
-    print(col_count)
+    # print(row_count)
+    # print(col_count)
+    col = get_column_letter(col_count)
+    print(col)
 
-    for row in this_sheet['A3:D' + str(row_count)]:
+    for row in this_sheet['A3:'+ col + str(row_count)]:
         # print(row)
         for cell in row:
             # print(cell.value)
             cell.value = ""
             # print(cell.value)
 
-    wb_obj.save(email_csv_output + new_xl_file)
+    wb_obj.save(csv_output + new_xl_file)
+
 
 def fn_insert_xl(ct, workerid, email_typ, email_addr, public,
                  email_csv_output, new_xl_file):
@@ -226,7 +154,7 @@ def main():
         # "Work Contact: Use Work Email for Notification",
         # "Work Contact: Work Email"
 
-        fn_clear_sheet(email_csv_output, new_xl_file)
+        fn_clear_sheet(email_csv_output, new_xl_file, 'Email')
 
         with open(raw_email_file, 'r') as f:
             d_reader = csv.DictReader(f, delimiter=',')
@@ -259,7 +187,7 @@ def main():
 
                 if len(row['Personal Contact: Personal Email']) != 0:
                     email_addr = row['Personal Contact: Personal Email']
-                    fn_write_email_cl(new_email_file, [workerid, "Home",
+                    fn_write_clean_file(new_email_file, [workerid, "Home",
                          email_addr,  "No"])
                     ct = ct + 1
                     fn_insert_xl(ct, workerid, "Home", email_addr, "No",
@@ -267,7 +195,7 @@ def main():
 
                 if len(row['Work Contact: Work Email']) != 0:
                     email_addr = row['Work Contact: Work Email']
-                    fn_write_email_cl(new_email_file, [workerid, "Work",
+                    fn_write_clean_file(new_email_file, [workerid, "Work",
                                                        email_addr, "Yes"])
                     ct = ct + 1
                     fn_insert_xl(ct, workerid, "Work", email_addr, "Yes",
