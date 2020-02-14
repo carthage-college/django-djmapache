@@ -18,6 +18,41 @@ def fn_format_country(cntry_code):
 
     return cntry
 
+def fn_format_cx_country(cntry_code):
+    if cntry_code == "CDN":
+        cntry = 'Canada'
+    elif cntry_code == "B":
+        cntry = 'Belgium'
+    elif  cntry_code == "USA":
+        cntry = 'United States of America'
+    elif cntry_code == "CHI":
+        cntry = 'China'
+    elif cntry_code == "CN":
+        cntry = 'China'
+    elif cntry_code == "I":
+        cntry = 'Italy'
+    elif cntry_code == "J":
+        cntry = 'Japan'
+    elif cntry_code == "EAK":
+        cntry = 'Kenya'
+    elif cntry_code == "KE":
+        cntry = 'Kenya'
+    elif cntry_code == "GER":
+        cntry = 'Germany'
+    elif cntry_code == "RA":
+        cntry = 'Argentina'
+    elif cntry_code == "SS":
+        cntry = 'Serbia'
+    elif cntry_code == "RFC":
+        cntry = 'Cameroon'
+    elif cntry_code == "SN":
+        cntry = 'Senegal'
+    else:
+        cntry = "Country Unavailable"
+
+    return cntry
+
+
 def fn_format_phone(cntry_code, phone):
     if cntry_code == "USA":
         intlcode = '1'
@@ -48,21 +83,11 @@ def fn_write_phone_cl_header(file):
                             "Phone Number", "Phone Extension", "Public"])
 
 
-def fn_write_phone_cl(file, data):
-    with open(file, 'a') as phone_output:
-        csvwriter = csv.writer(phone_output)
-        csvwriter.writerow(data)
-
 def fn_write_email_cl_header(file):
     with open(file, 'w') as email_output:
         csvwriter = csv.writer(email_output)
         csvwriter.writerow(["Worker ID", "Email Type", "Email Address",
                             "Public"])
-
-def fn_write_email_cl(file, data):
-    with open(file, 'a') as email_output:
-        csvwriter = csv.writer(email_output)
-        csvwriter.writerow(data)
 
 def fn_write_addr_cl_header(file):
     with open(file, 'w') as addr_output:
@@ -73,10 +98,10 @@ def fn_write_addr_cl_header(file):
                             "Address Line 2", "Address Line 3",
                             "Address Line 4", "Remote EE"])
 
-def fn_write_addr_cl(file, data):
-    with open(file, 'a') as addr_output:
-        csvwriter = csv.writer(addr_output)
-        csvwriter.writerow(data)
+# def fn_write_addr_cl(file, data):
+#     with open(file, 'a') as addr_output:
+#         csvwriter = csv.writer(addr_output)
+#         csvwriter.writerow(data)
 
 def fn_write_name_cl_header(file):
     with open(file, 'w') as name_output:
@@ -88,11 +113,6 @@ def fn_write_name_cl_header(file):
                             "Preferred Middle Name", "Preferred Last Name",
                             "Local Script First Name",
                             "Local Script Last Name"])
-
-def fn_write_name_cl(file, data):
-    with open(file, 'a') as output:
-        csvwriter = csv.writer(output)
-        csvwriter.writerow(data)
 
 
 def fn_write_personal_cl_header(file):
