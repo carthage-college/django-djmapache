@@ -138,7 +138,7 @@ def main():
 
     # For testing use last file
     # new_file = csv_output + "ADPtoCXLast.csv"
-    raw_file = csv_input + "addresses.csv"
+    raw_file = csv_input + "Addresses.csv"
     new_file = csv_output + "address_cln.csv"
     new_xl_file = "Worker Data.xlsx"
 
@@ -244,6 +244,7 @@ def main():
         """Because we can't use the ADP info for student workers, we need to get 
             that info from cx"""
         # Get the student data via SQL query
+        ct = ct + 1
 
         stuquery = '''select CR.adp_associate_id, CR.adp_id, JR.id, 
                 trim(IR.ctry), trim(IR.st), trim(IR.city), trim(IR.addr_line1), 
@@ -267,6 +268,7 @@ def main():
             data_result = xsql(stuquery, connection).fetchall()
             ret = list(data_result)
             for i in ret:
+                workerid = str(i[2])
                 cntry = fn_format_cx_country(i[3])
                 # cntry = row['Primary Address: Country Code']
                 addr_typ = "Primary Home"
@@ -282,6 +284,14 @@ def main():
                 addr4 = ""
                 remote_EE = ""
 
+                """Foreign Addresses will be a challenge...
+                   How to validate all the options?
+                Argentina: requires country, City, Addr1, Postal code
+                Cameroon: requires country, City, Addr1 -NO POSTAL CODE
+                China: requires country, Region, Addr1, Postal code
+                Senegal: requires country, NO REGION, City, Addr1, Postal code
+                """
+
                 print(ct)
                 print(workerid + ',' + cntry + ','
                      + addr_typ + ',' + addr_use + ',' + region + ','
@@ -294,13 +304,12 @@ def main():
                         + subregion + ',' + city + ',' + city_subdv + ','
                         + postal_cod + ',' + addr1 + ',' + addr2 + ','
                         + addr3 + ',' + addr4 + ',' + remote_EE])
-                ct = ct + 1
-            #
-            #     fn_insert_xl(ct, workerid, cntry, addr_typ, addr_use,
-            #         region, subregion, city, city_subdv, postal_cod,
-            #         addr1, addr2, addr3, addr4,  remote_EE,
-            #         csv_output, new_xl_file)
 
+                fn_insert_xl(ct, workerid, cntry, addr_typ, addr_use,
+                    region, subregion, city, city_subdv, postal_cod,
+                    addr1, addr2, addr3, addr4,  remote_EE,
+                    csv_output, new_xl_file)
+                ct = ct + 1
 
         # Loop through and append data to csv and/or workbook
 
