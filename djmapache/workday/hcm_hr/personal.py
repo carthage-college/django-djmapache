@@ -14,11 +14,11 @@ from django.conf import settings
 
 import openpyxl
 from openpyxl import Workbook
+from openpyxl.utils.cell import get_column_letter
 from django.conf import settings
 from djimix.core.utils import get_connection, xsql
 from djmapache.workday.hcm_hr.utilities import fn_format_country, \
     fn_write_personal_cl_header, fn_write_clean_file, fn_get_id
-
 
 # informix environment
 os.environ['INFORMIXSERVER'] = settings.INFORMIXSERVER
@@ -51,16 +51,19 @@ parser.add_argument(
     dest="database"
 )
 
-def fn_clear_sheet(email_csv_output, new_xl_file):
+def fn_clear_sheet(email_csv_output, new_xl_file, sheet):
     wb_obj = openpyxl.load_workbook(email_csv_output + new_xl_file)
-    this_sheet = wb_obj['Personal']
+    this_sheet = wb_obj[sheet]
     # print(this_sheet)
     row_count = this_sheet.max_row
-    # col_count = this_sheet.max_column
+    col_count = this_sheet.max_column
     # print(row_count)
     # print(col_count)
 
-    for row in this_sheet['A3:N' + str(row_count)]:
+    col = get_column_letter(col_count)
+    print(col)
+
+    for row in this_sheet['A3:' + col + str(row_count)]:
         # print(row)
         for cell in row:
             # print(cell.value)
@@ -70,6 +73,15 @@ def fn_clear_sheet(email_csv_output, new_xl_file):
     wb_obj.save(email_csv_output + new_xl_file)
 
 def fn_set_mrtl_stat(marital_code):
+    # This may need to follow a preset format in Workday
+    # Not sure if these are the codes or keys for the values
+    # USA_Divorced
+    # USA_Married
+    # USA_Partnered
+    # USA_Separated
+    # USA_Single
+    # USA_Widowed
+
     switcher = {
         'S': 'Single',
         'M': 'Married',
@@ -143,7 +155,7 @@ def main():
     new_file = csv_output + "personal_cln.csv"
     new_xl_file = "Worker Data.xlsx"
 
-    fn_clear_sheet(csv_output, new_xl_file)
+    fn_clear_sheet(csv_output, new_xl_file, 'Personal')
 
     try:
         # set global variable
@@ -219,12 +231,6 @@ def main():
                 mrtl_stat = fn_set_mrtl_stat(row["Marital Status Code"].strip())
                 mrtl_stat_cod = row["Marital Status Code"]
                 mrtl_date = row["Marital Status Effective Date"]
-
-                # print(new_file, [workerid + ',' + bdate
-                #                                + ',' + ddate + ',' + gender
-                #                                + ',' + mrtl_stat + ','
-                #                                + mrtl_stat_cod + ','
-                #                                + mrtl_date])
 
                 fn_write_clean_file(new_file, [workerid + ',' + bdate
                     + ',' + ddate + ',' + gender + ',' + '' + ',' + mrtl_stat
