@@ -17,7 +17,8 @@ from openpyxl.utils.cell import get_column_letter
 from django.conf import settings
 from djimix.core.utils import get_connection, xsql
 from djmapache.workday.hcm_hr.utilities import fn_format_country, \
-    fn_format_phone, fn_write_phone_cl_header, fn_write_clean_file, fn_get_id
+    fn_format_phone, fn_write_phone_cl_header, fn_write_clean_file, \
+    fn_get_id, fn_format_cx_country, fn_format_cx_phone
 
 # informix environment
 os.environ['INFORMIXSERVER'] = settings.INFORMIXSERVER
@@ -96,7 +97,7 @@ def fn_insert_xl(ct, workerid, phon_typ, cntry, intlcode, area, phon, public,
         this_sheet.cell(row=ct, column=4).value = intlcode
         this_sheet.cell(row=ct, column=5).value = area
         this_sheet.cell(row=ct, column=6).value = phon
-        this_sheet.cell(row=ct, column=8).value = 'Public'
+        this_sheet.cell(row=ct, column=8).value = public
 
         wb_obj.save(csv_output + new_xl_file)
 
@@ -142,7 +143,7 @@ def main():
             # care of this scenario and we will never arrive here.
             EARL = None
             # establish database connection
-        # print(EARL)
+        print(EARL)
 
         # Create the new csv file for the formatted data
         fn_write_phone_cl_header(new_phone_file)
@@ -199,7 +200,7 @@ def main():
                         + area + ',' + phon + ',' + '' + ',' + 'No'])
                     ct = ct + 1
                     fn_insert_xl(ct, workerid, phon_typ, cntry, intlcode, area,
-                                 phon, 'public', csv_output, new_xl_file)
+                                 phon, 'No', csv_output, new_xl_file)
 
                 if len(row['Personal Contact: Personal Mobile']) != 0:
                     ret = fn_format_phone(row['Primary Address: Country Code'],
@@ -214,7 +215,7 @@ def main():
                         + area + ',' + phon + ',' + '' + ',' + 'No'])
                     ct = ct + 1
                     fn_insert_xl(ct, workerid, phon_typ, cntry, intlcode, area,
-                                 phon, 'public', csv_output, new_xl_file)
+                                 phon, 'No', csv_output, new_xl_file)
 
                 if len(row['Work Contact: Work Phone']) != 0:
                     ret = fn_format_phone(row['Primary Address: Country Code'],
@@ -229,7 +230,7 @@ def main():
                         + area + ',' + phon + ',' + '' + ',' + 'No'])
                     ct = ct + 1
                     fn_insert_xl(ct, workerid, phon_typ, cntry, intlcode, area,
-                                 phon, 'public', csv_output, new_xl_file)
+                                 phon, 'Yes', csv_output, new_xl_file)
 
                 if len(row['Work Contact: Work Mobile']) != 0:
                     ret = fn_format_phone(
@@ -245,7 +246,77 @@ def main():
                         + area + ',' + phon + ',' + '' + ',' + 'No'])
                     ct = ct + 1
                     fn_insert_xl(ct, workerid, phon_typ, cntry, intlcode,
-                        area, phon, 'public', csv_output, new_xl_file)
+                        area, phon, 'Yes', csv_output, new_xl_file)
+
+        """Because we can't use the ADP info for student workers, we need to get 
+                  that info from cx"""
+        # Get the student data via SQL query
+        ct = ct + 1
+
+        stuquery = '''select distinct CR.adp_associate_id, CR.adp_id, JR.id, 
+                trim(IR.phone), IR.ctry, JR.hrpay, JR.end_date, AR.aa, 
+                trim(AR.phone)
+                from job_rec JR
+                LEFT JOIN id_rec IR
+                ON JR.id = IR.id
+                join cvid_rec CR
+                on CR.cx_id = JR.id
+                left join aa_rec AR 
+                on AR.id = JR.id
+                where (JR.end_date is null  or JR.end_date > TODAY)
+                and JR.hrpay = 'DPW'
+                and AR.aa in ('CELL', 'WORK')         
+                limit 20
+                  '''
+
+        # print(stuquery)
+
+        connection = get_connection(EARL)
+        with connection:
+            data_result = xsql(stuquery, connection).fetchall()
+            ret = list(data_result)
+            for i in ret:
+                workerid = str(i[2])
+                cntry = fn_format_cx_country(i[4])
+
+                if len(i[3]) == 12:
+                    ret = fn_format_cx_phone(i[4], i[3])
+                    intlcode = ret[0]
+                    phon = ret[2]
+                    phon_typ = "Home Phone"
+                    # print(workerid, phon_typ, cntry, intlcode, area, phon)
+                    fn_write_clean_file(new_phone_file, [workerid + ','
+                             + phon_typ + ',' + cntry + ',' + intlcode + ',' +
+                             area + ',' + phon + ',' + '' + ',' + 'No'])
+
+                    fn_insert_xl(ct, workerid, phon_typ, cntry, intlcode,
+                             area, phon, 'No', csv_output, new_xl_file)
+                    ct = ct + 1
+
+                else:
+                    # print('Phone invalid')
+                    pass
+
+                # print(str(len(i[8])))
+                # print('Phone = ' + i[8])
+
+                if len(i[8]) == 12:
+                    ret = fn_format_cx_phone(i[4], i[8])
+                    intlcode = ret[0]
+                    phon = ret[2]
+                    phon_typ = "Personal Mobile"
+                    # print(workerid, phon_typ, cntry, intlcode, area, phon)
+                    # print(ct)
+                    fn_write_clean_file(new_phone_file, [workerid + ','
+                             + phon_typ + ',' + cntry + ',' + intlcode + ',' +
+                             area + ',' + phon + ',' + '' + ',' + 'No'])
+
+                    fn_insert_xl(ct, workerid, phon_typ, cntry, intlcode,
+                             area, phon, 'No', csv_output, new_xl_file)
+                    ct = ct + 1
+                else:
+                    pass
+                    # print('Phone invalid')
 
     except Exception as e:
         print("Error in phone_rec.py, Error = " + repr(e))
