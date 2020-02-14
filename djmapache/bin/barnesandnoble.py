@@ -2,13 +2,13 @@
 # -*- coding: utf-8 -*-
 
 import csv
+import django
 import os
+import pysftp
 import shutil
 import sys
 import time
 
-import django
-import pysftp
 from django.conf import settings
 from djimix.core.utils import get_connection
 from djimix.core.utils import xsql
