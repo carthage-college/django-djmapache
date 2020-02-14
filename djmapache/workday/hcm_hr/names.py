@@ -19,7 +19,8 @@ from openpyxl.utils.cell import get_column_letter
 from django.conf import settings
 from djimix.core.utils import get_connection, xsql
 from djmapache.workday.hcm_hr.utilities import fn_format_country, \
-    fn_write_name_cl_header, fn_write_clean_file, fn_get_id
+    fn_write_name_cl_header, fn_write_clean_file, fn_get_id, \
+    fn_format_cx_country
 
 
 # informix environment
@@ -133,10 +134,10 @@ def main():
     csv_input = "/home/dsullivan/djmapache/djmapache/workday/hcm_hr/" \
                              "raw_data/"
     # else:
-    # csv_output = settings.csv_output
+   # csv_output = settings.csv_output
     # print(csv_output)
 
-    raw_file = csv_input + "names.csv"
+    raw_file = csv_input + "Names.csv"
     new_file = csv_output + "names_cln.csv"
     new_xl_file = "Worker Data.xlsx"
 
@@ -237,6 +238,75 @@ def main():
                     # Probably need to write a log or notification here
                     pass
 
+
+
+
+        """Because we can't use the ADP info for student workers, we need to get 
+            that info from cx"""
+        # Get the student data via SQL query
+
+        stuquery = '''select CR.adp_associate_id, CR.adp_id, JR.id, 
+                trim(JR.hrpay),  trim(JR.hrstat), trim(IR.firstname), 
+                trim(IR.middlename), trim(IR.lastname),
+                trim(IR.ctry), trim(IR.suffix), IR.pub, trim(IR.title)
+                from job_rec JR
+                LEFT JOIN id_rec IR
+                ON JR.id = IR.id
+                LEFT join cvid_rec CR
+                on CR.cx_id = JR.id
+                where (JR.end_date is null  or JR.end_date > TODAY)
+                and JR.hrpay = 'DPW'
+                limit 10
+            '''
+
+        ct = ct + 1
+
+        connection = get_connection(EARL)
+        with connection:
+            data_result = xsql(stuquery, connection).fetchall()
+            ret = list(data_result)
+            for i in ret:
+                cntry = fn_format_cx_country(i[8])
+                # cntry = row['Primary Address: Country Code']
+                workerid = str(i[2])
+                worker_type = 'Student'
+                fname = i[5]
+                mname = i[6]
+                lname = i[7]
+                lgl_cntry = ''
+                title = i[11]
+                prefix = ''
+                suffix = i[9]
+                pref_fname = ''
+                pref_mname = ''
+                pref_lname = ''
+                local_scrp_fname = ''
+                local_scrp_lname = ''
+
+                print(ct)
+                # print(workerid, worker_type, cntry, fname, mname,  lname,
+                #       lgl_cntry, title, prefix, suffix, pref_fname, pref_mname,
+                #       pref_lname, local_scrp_fname, local_scrp_lname)
+
+                fn_write_clean_file(new_file, [workerid + ',' + worker_type
+                                               + ',' + fname + ',' + mname +
+                                               ',' + lname + ','
+                                               + cntry + ',' + title +
+                                               ',' + prefix + ','
+                                               + suffix + ',' + pref_fname +
+                                               ',' + pref_mname + ','
+                                               + pref_lname + ',' + local_scrp_fname + ','
+                                               + local_scrp_lname])
+
+                fn_insert_xl(ct, workerid, worker_type, fname, mname,
+                             lname, cntry, title, prefix, suffix,
+                             pref_fname, pref_mname, pref_lname,
+                             local_scrp_fname,
+                             local_scrp_lname,
+                             csv_output, new_xl_file)
+                ct = ct + 1
+
+        # Loop through and append data to csv and/or workbook
     except Exception as e:
         print("Error in names.py, Error = " + repr(e))
         # fn_write_error("Error in address.py - Main: "
