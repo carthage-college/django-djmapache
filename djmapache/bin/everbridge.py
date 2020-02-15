@@ -105,6 +105,8 @@ def main():
                     else:  # write header row for Student and Adult
                         output.writerow(settings.EVERBRIDGE_STUDENT_HEADERS)
                     for row in rows:
+                        if row.customvalue1:
+                            row.customvalue1 = row.customvalue1.strip()
                         output.writerow(row)
                         if test:
                             print("row = \n{0}".format(row))
@@ -185,7 +187,7 @@ def main():
                             print("current working directory: {0}".format(
                                 sftp.getcwd(),
                             ))
-                            sftp.put(filename, preserve_mtime=True)
+                            #sftp.put(filename, preserve_mtime=True)
                             print("file uploaded:")
                             for phile in sftp.listdir():
                                 print(phile)
