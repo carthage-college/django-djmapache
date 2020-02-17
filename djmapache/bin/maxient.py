@@ -44,7 +44,7 @@ def main():
 
         if rows:
             # set directory and filename
-            filename = ('{0}carthage_demographic_data.txt'.format(
+            filename = ('{0}CARTHAGE_DEMOGRAPHICS_DATA.txt'.format(
                 settings.MAXIENT_CSV_OUTPUT,
             ))
             # create txt file using pipe delimiter
