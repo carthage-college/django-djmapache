@@ -401,3 +401,133 @@ OCLC_ENSXTRNL_CONNECTION = {
     'username': OCLC_ENSXTRNL_USER,
     'password': OCLC_ENSXTRNL_PASS,
 }
+# Barnes and Noble 1
+BARNESNOBLE1_HOST = ''
+BARNESNOBLE1_USER = ''
+BARNESNOBLE1_PKEY = ''
+BARNESNOBLE1_PASS = ''
+BARNESNOBLE1_PORT = 0
+# Barnes and Noble 2
+BARNESNOBLE2_HOST = ''
+BARNESNOBLE2_USER = ''
+BARNESNOBLE2_PKEY = ''
+BARNESNOBLE2_PASS = ''
+BARNESNOBLE2_PORT = 0
+BARNESNOBLE_CSV_OUTPUT = ''
+BARNESNOBLE_CSV_ARCHIVED = ''
+BARNESNOBLE_TO_EMAIL = []
+BARNESNOBLE_FROM_EMAIL = ''
+# Package Concierge
+CONCIERGE_HOST = ''
+CONCIERGE_USER = ''
+CONCIERGE_PASS = ''
+CONCIERGE_PORT = 0
+CONCIERGE_CSV_OUTPUT = ''
+CONCIERGE_CSV_ARCHIVED = ''
+CONCIERGE_TO_EMAIL = []
+CONCIERGE_FROM_EMAIL = ''
+# maxient
+MAXIENT_HOST = ''
+MAXIENT_USER = ''
+MAXIENT_PKEY = ''
+MAXIENT_PASS = ''
+MAXIENT_CSV_OUTPUT = ''
+MAXIENT_TO_EMAIL = []
+MAXIENT_FROM_EMAIL = ''
+MAXIENT_HEADERS = [
+    'Carthage ID',
+    'Username',
+    'Last Name',
+    'First Name',
+    'Middle Name',
+    'Date of Birth',
+    'Gender',
+    'Ethnicity',
+    'Building',
+    'Room Number',
+    'Local Mailing Address',
+    'Local City',
+    'Local State',
+    'Local Zip',
+    'Local Phone',
+    'Cell Phone',
+    'Permanent Address',
+    'Permanent City',
+    'Permanent State',
+    'Permanent Zip',
+    'Permanent Country',
+    'Permanent Phone',
+    'Emergency Contact',
+    'Email Address',
+    'Classification',
+    'Academic Major',
+    'Academic Advisor',
+    'GPA Recent',
+    'GPA Cumulative',
+    'Athlete',
+    'Greek',
+    'Honors',
+    'ROTC Vet',
+    'Last Update',
+]
+# Everbridge
+EVERBRIDGE_HOST = ''
+EVERBRIDGE_USER = ''
+EVERBRIDGE_PKEY = ''
+EVERBRIDGE_CSV_OUTPUT = ''
+EVERBRIDGE_TO_EMAIL = []
+EVERBRIDGE_FROM_EMAIL = ''
+EVERBRIDGE_FACSTAFF_HEADERS = [
+    'First Name',
+    'Middle Initial',
+    'Last Name',
+    'Suffix',
+    'External ID',
+    'Country',
+    'Business Name',
+    'Record Type',
+    'Phone 1',
+    'Phone Country 1',
+    'Phone 2',
+    'Phone Country 2',
+    'Email Address 1',
+    'Email Address 2',
+    'SMS 1',
+    'SMS 1 Country',
+    'Custom Field 1',
+    'Custom Value 1',
+    'Custom Field 2',
+    'Custom Value 2',
+    'Custom Field 3',
+    'Custom Value 3',
+    'END',
+]
+EVERBRIDGE_STUDENT_HEADERS = [
+    'First Name',
+    'Middle Initial',
+    'Last Name',
+    'Suffix',
+    'External ID',
+    'Country',
+    'Business Name',
+    'Record Type',
+    'Phone 1',
+    'Phone Country 1',
+    'Email Address 1',
+    'Email Address 2',
+    'SMS 1',
+    'SMS 1 Country',
+    'Custom Field 1',
+    'Custom Value 1',
+    'Custom Field 2',
+    'Custom Value 2',
+    'Custom Field 3',
+    'Custom Value 3',
+    'END',
+]
+# Papercut
+PAPERCUT_CSV_OUTPUT = ''
+PAPERCUT_CSV_ARCHIVED = ''
+PAPERCUT_TO_EMAIL = []
+PAPERCUT_FROM_EMAIL = ''
+PAPERCUT_BCC_EMAIL = ''
