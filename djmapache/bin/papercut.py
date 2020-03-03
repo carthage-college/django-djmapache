@@ -64,7 +64,7 @@ def main():
             shutil.move(localpath, orig_papercut_file)
             # modified papercut output csv file
             total_cost = 0
-            with open(modified_papercut_file, 'wb') as modified_papercut_csv:
+            with open(modified_papercut_file, 'w') as modified_papercut_csv:
                 writer = csv.writer(modified_papercut_csv)
                 # open original papercut input csv file for reading
                 with open(orig_papercut_file, 'r') as orig_papercut_csv:
