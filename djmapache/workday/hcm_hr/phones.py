@@ -11,14 +11,14 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djmapache.settings.shell")
 django.setup()
 from django.conf import settings
 
-
 import openpyxl
 from openpyxl import Workbook
+from openpyxl.utils.cell import get_column_letter
 from django.conf import settings
 from djimix.core.utils import get_connection, xsql
 from djmapache.workday.hcm_hr.utilities import fn_format_country, \
-    fn_format_phone, fn_write_phone_cl_header, fn_write_phone_cl
-
+    fn_format_phone, fn_write_phone_cl_header, fn_write_clean_file, \
+    fn_get_id, fn_format_cx_country, fn_format_cx_phone
 
 # informix environment
 os.environ['INFORMIXSERVER'] = settings.INFORMIXSERVER
@@ -50,104 +50,56 @@ parser.add_argument(
     help="database name.",
     dest="database"
 )
-# 
-# def file_download():
-#     if test:
-#         adp_csv_output = "/home/dsullivan/djlabour/djlabour/testdata/"
-#     else:
-#         adp_csv_output = settings.ADP_CSV_OUTPUT
-#     # sFTP fetch (GET) downloads the file from ADP file from server
-#     # print("Get ADP File")
-#     cnopts = pysftp.CnOpts()
-#     cnopts.hostkeys = None
-#     # cnopts.hostkeys = settings.ADP_HOSTKEY
-#     # External connection information for ADP Application server
-#     XTRNL_CONNECTION = {
-#        'host': settings.ADP_HOST,
-#        'username': settings.ADP_USER,
-#        'password': settings.ADP_PASS,
-#        'cnopts': cnopts
-#     }
-#     with pysftp.Connection(**XTRNL_CONNECTION) as sftp:
-#         try:
-#             # print('Connection Established')
-#             sftp.chdir("adp/")
-#             # Remote Path is the ADP server and once logged in we fetch
-#             # directory listing
-#             remotepath = sftp.listdir()
-#             # Loop through remote path directory list
-#             # print("Remote Path = " + str(remotepath))
-#             for filename in remotepath:
-#                 remotefile = filename
-#                 # print("Remote File = " + str(remotefile))
-#                 # set local directory for which the ADP file will be
-#                 # downloaded to
-#                 local_dir = ('{0}'.format(
-#                     adp_csv_output
-#                 ))
-#                 localpath = local_dir + remotefile
-#                 # GET file from sFTP server and download it to localpath
-#                 sftp.get(remotefile, localpath)
-#                 #############################################################
-#                 # Delete original file %m_%d_%y_%h_%i_%s_Applications(%c).txt
-#                 # from sFTP (ADP) server
-#                 #############################################################
-#                 # sftp.remove(filename)
-#         except Exception as e:
-#             # print("Error in phone_rec.py- File download, " + e.message)
-#             fn_write_error("Error in phone_rec.py - File download, "
-#                            "adptocx.csv not found, " +  repr(e))
-#             fn_send_mail(settings.ADP_TO_EMAIL, settings.ADP_FROM_EMAIL,
-#                 "Error in phone_rec.py - File download, "
-#                 "adptocx.csv not found," + repr(e),
-#                 "Error in phone_rec.py - File download")
-# 
-#     sftp.close()
 
-def fn_get_id(adp_id, EARL):
-    try:
-        connection = get_connection(EARL)
-        # connection closes when exiting the 'with' block
-        QUERY = '''select cx_id_char
-            from cvid_rec where adp_id = {0}'''.format(adp_id)
+"""NOTE:  Doesn't make sense to try to modularize the excel functions because
+    each worksheet has so many specific columns with formatting  Will need 
+    openpyxl in each script"""
 
-        with connection:
-            data_result = xsql(
-                QUERY, connection, key=settings.INFORMIX_DEBUG
-            ).fetchone()
-            return data_result[0].strip()
-            # print(data_result[0])
-            # ret = data_result[0]
-            # print("Carthage id is: " + ret)
+def fn_clear_sheet(csv_output, new_xl_file, sheet):
+    wb_obj = openpyxl.load_workbook(csv_output + new_xl_file)
+    this_sheet = wb_obj[sheet]
+    print(this_sheet)
+    row_count = this_sheet.max_row
+    col_count = this_sheet.max_column
+    # print(row_count)
+    # print(col_count)
+    col = get_column_letter(col_count)
+    print(col)
 
-    except Exception as e:
-        print("Error in phone_rec.py fn_get_id , Error = " + repr(e))
-        # fn_write_error("Error in phone_rec.py - fn_get_id: "
-        #                + repr(e))
-        # fn_send_mail(settings.ADP_TO_EMAIL, settings.ADP_FROM_EMAIL,
-        #          "Error in phone_rec.py fn_get_id, Error = " + repr(e),
-        #          "Error in phone_rec.py fn_get_id")
+    for row in this_sheet['A3:'+ col + str(row_count)]:
+        # print(row)
+        for cell in row:
+            # print(cell.value)
+            cell.value = ""
+            # print(cell.value)
+
+    wb_obj.save(csv_output + new_xl_file)
 
 def fn_insert_xl(ct, workerid, phon_typ, cntry, intlcode, area, phon, public,
-                 phone_csv_output):
+                 csv_output, new_xl_file):
 
     try:
-        wb_obj = openpyxl.load_workbook(phone_csv_output + "phones.xlsx")
-        # this may be the syntax to open a pwd protecte xls..
+        wb_obj = openpyxl.load_workbook(csv_output
+                                        + new_xl_file)
+        # this may be the syntax to open a pwd protected xls..
         # wb_obj.protection.password = ''
+        # After a fair amount of research, it seems that there is no easy
+        # way to use a password withing Python to pass to an Excel file
+        # May be easiest just to remove the password protection and re-enter
+        # it when the work is done.
 
         # # print(wb_obj.sheetnames)
         this_sheet = wb_obj['Phone']
-        print(this_sheet)
+        # print(this_sheet)
         this_sheet.cell(row=ct, column=1).value = workerid
         this_sheet.cell(row=ct, column=2).value = phon_typ
         this_sheet.cell(row=ct, column=3).value = cntry
         this_sheet.cell(row=ct, column=4).value = intlcode
         this_sheet.cell(row=ct, column=5).value = area
         this_sheet.cell(row=ct, column=6).value = phon
-        this_sheet.cell(row=ct, column=8).value = 'Public'
+        this_sheet.cell(row=ct, column=8).value = public
 
-        wb_obj.save(phone_csv_output + "phones.xlsx")
+        wb_obj.save(csv_output + new_xl_file)
 
     except Exception as e:
         print("Error in phone_rec.py fn_ins_xl , Error = " + repr(e))
@@ -165,17 +117,17 @@ def main():
     ##########################################################################
 
     # # Defines file names and directory location
-    # if test:
-    phone_csv_output = "/home/dsullivan/djmapache/djmapache/workday/hcm_hr/clean_data/"
-    phone_csv_input = "/home/dsullivan/djmapache/djmapache/workday/hcm_hr/raw_data/"
-    # else:
-    # phone_csv_output = settings.phone_csv_output
-    # print(phone_csv_output)
+    csv_output = settings.WORKDAY_CSV_OUTPUT
+    csv_input = settings.WORKDAY_CSV_INPUT
+    # print(csv_output)
 
     # For testing use last file
-    # new_phone_file = phone_csv_output + "ADPtoCXLast.csv"
-    raw_phone_file = phone_csv_input + "phones.csv"
-    new_phone_file = phone_csv_output + "phones_cln.csv"
+    # new_phone_file = csv_output + "ADPtoCXLast.csv"
+    raw_phone_file = csv_input + "phones.csv"
+    new_phone_file = csv_output + "phones_cln.csv"
+    new_xl_file = "Worker Data.xlsx"
+
+    fn_clear_sheet(csv_output, new_xl_file, 'Phone')
 
     try:
         # set global variable
@@ -191,12 +143,7 @@ def main():
             # care of this scenario and we will never arrive here.
             EARL = None
             # establish database connection
-        # print(EARL)
-
-        # Pull the file from the ADP FTP site
-        # execute sftp code in production only
-        # if not test:
-        #     file_download()
+        print(EARL)
 
         # Create the new csv file for the formatted data
         fn_write_phone_cl_header(new_phone_file)
@@ -228,7 +175,8 @@ def main():
                         pass
                     else:
                         # print(str(row['File Number']))
-                        workerid = fn_get_id(str(row['File Number']), EARL)
+                        workerid = fn_get_id(str(row['File Number']), EARL,
+                                             settings.INFORMIX_DEBUG)
                         # print(workerid)
                 else:
                     workerid = row['Carthage ID #']
@@ -246,14 +194,13 @@ def main():
                     area = ret[1]
                     phon = ret[2]
                     phon_typ = "Home Phone"
-                    fn_write_phone_cl(new_phone_file, [workerid + ','
+                    fn_write_clean_file(new_phone_file, [workerid + ','
                         + phon_typ + ',' + cntry + ',' + intlcode
                         + ','
                         + area + ',' + phon + ',' + '' + ',' + 'No'])
                     ct = ct + 1
-                    fn_insert_xl(ct, workerid, phon_typ, cntry,
-                    intlcode, area,
-                                 phon, 'public', phone_csv_output)
+                    fn_insert_xl(ct, workerid, phon_typ, cntry, intlcode, area,
+                                 phon, 'No', csv_output, new_xl_file)
 
                 if len(row['Personal Contact: Personal Mobile']) != 0:
                     ret = fn_format_phone(row['Primary Address: Country Code'],
@@ -262,14 +209,13 @@ def main():
                     area = ret[1]
                     phon = ret[2]
                     phon_typ = "Personal Mobile"
-                    fn_write_phone_cl(new_phone_file, [workerid + ','
+                    fn_write_clean_file(new_phone_file, [workerid + ','
                         + phon_typ + ',' + cntry + ',' + intlcode
                         + ','
                         + area + ',' + phon + ',' + '' + ',' + 'No'])
                     ct = ct + 1
-                    fn_insert_xl(ct, workerid, phon_typ, cntry,
-                    intlcode, area,
-                                 phon, 'public', phone_csv_output)
+                    fn_insert_xl(ct, workerid, phon_typ, cntry, intlcode, area,
+                                 phon, 'No', csv_output, new_xl_file)
 
                 if len(row['Work Contact: Work Phone']) != 0:
                     ret = fn_format_phone(row['Primary Address: Country Code'],
@@ -278,14 +224,13 @@ def main():
                     area = ret[1]
                     phon = ret[2]
                     phon_typ = "Work Office"
-                    fn_write_phone_cl(new_phone_file, [workerid + ','
+                    fn_write_clean_file(new_phone_file, [workerid + ','
                         + phon_typ + ',' + cntry + ',' + intlcode
                         + ','
                         + area + ',' + phon + ',' + '' + ',' + 'No'])
                     ct = ct + 1
-                    fn_insert_xl(ct, workerid, phon_typ, cntry,
-                    intlcode, area,
-                                 phon, 'public', phone_csv_output)
+                    fn_insert_xl(ct, workerid, phon_typ, cntry, intlcode, area,
+                                 phon, 'Yes', csv_output, new_xl_file)
 
                 if len(row['Work Contact: Work Mobile']) != 0:
                     ret = fn_format_phone(
@@ -295,13 +240,83 @@ def main():
                     area = ret[1]
                     phon = ret[2]
                     phon_typ = "Work Mobile"
-                    fn_write_phone_cl(new_phone_file, [workerid + ','
+                    fn_write_clean_file(new_phone_file, [workerid + ','
                         + phon_typ + ',' + cntry + ',' + intlcode
                         + ','
                         + area + ',' + phon + ',' + '' + ',' + 'No'])
                     ct = ct + 1
-                    # fn_insert_xl(ct, workerid, phon_typ, cntry, intlcode,
-                    # area, phon, 'public', phone_csv_output)
+                    fn_insert_xl(ct, workerid, phon_typ, cntry, intlcode,
+                        area, phon, 'Yes', csv_output, new_xl_file)
+
+        """Because we can't use the ADP info for student workers, we need to get 
+                  that info from cx"""
+        # Get the student data via SQL query
+        ct = ct + 1
+
+        stuquery = '''select distinct CR.adp_associate_id, CR.adp_id, JR.id, 
+                trim(IR.phone), IR.ctry, JR.hrpay, JR.end_date, AR.aa, 
+                trim(AR.phone)
+                from job_rec JR
+                LEFT JOIN id_rec IR
+                ON JR.id = IR.id
+                join cvid_rec CR
+                on CR.cx_id = JR.id
+                left join aa_rec AR 
+                on AR.id = JR.id
+                where (JR.end_date is null  or JR.end_date > TODAY)
+                and JR.hrpay = 'DPW'
+                and AR.aa in ('CELL', 'WORK')         
+                limit 20
+                  '''
+
+        # print(stuquery)
+
+        connection = get_connection(EARL)
+        with connection:
+            data_result = xsql(stuquery, connection).fetchall()
+            ret = list(data_result)
+            for i in ret:
+                workerid = str(i[2])
+                cntry = fn_format_cx_country(i[4])
+
+                if len(i[3]) == 12:
+                    ret = fn_format_cx_phone(i[4], i[3])
+                    intlcode = ret[0]
+                    phon = ret[2]
+                    phon_typ = "Home Phone"
+                    # print(workerid, phon_typ, cntry, intlcode, area, phon)
+                    fn_write_clean_file(new_phone_file, [workerid + ','
+                             + phon_typ + ',' + cntry + ',' + intlcode + ',' +
+                             area + ',' + phon + ',' + '' + ',' + 'No'])
+
+                    fn_insert_xl(ct, workerid, phon_typ, cntry, intlcode,
+                             area, phon, 'No', csv_output, new_xl_file)
+                    ct = ct + 1
+
+                else:
+                    # print('Phone invalid')
+                    pass
+
+                # print(str(len(i[8])))
+                # print('Phone = ' + i[8])
+
+                if len(i[8]) == 12:
+                    ret = fn_format_cx_phone(i[4], i[8])
+                    intlcode = ret[0]
+                    phon = ret[2]
+                    phon_typ = "Personal Mobile"
+                    # print(workerid, phon_typ, cntry, intlcode, area, phon)
+                    # print(ct)
+                    fn_write_clean_file(new_phone_file, [workerid + ','
+                             + phon_typ + ',' + cntry + ',' + intlcode + ',' +
+                             area + ',' + phon + ',' + '' + ',' + 'No'])
+
+                    fn_insert_xl(ct, workerid, phon_typ, cntry, intlcode,
+                             area, phon, 'No', csv_output, new_xl_file)
+                    ct = ct + 1
+                else:
+                    pass
+                    # print('Phone invalid')
 
     except Exception as e:
         print("Error in phone_rec.py, Error = " + repr(e))
