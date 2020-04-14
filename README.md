@@ -2,6 +2,16 @@
 Middleware applications that provide the data transfer between third party
 SAAS entities and internal databases.
 
+# security onion for packetfence
+
+so-master.carthage.edu
+
+/etc/elastalert/rules/
+/data2/python_venv/3.5/packetfence/
+
+the code in the packetfence directory is not in git,
+which we cannot use on that server, so we store code here.
+
 # crontab for larry
 # handshake
 00 03 * * * (cd /data2/python_venv/3.6/djmapache/ && . bin/activate && bin/python djmapache/handshake/buildcsv.py --database=cars 2>&1 | mail -s "[DJ Mapache] Handshake CSV generator" larry@carthage.edu) >> /dev/null 2>&1
