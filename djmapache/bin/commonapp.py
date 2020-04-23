@@ -150,7 +150,9 @@ def insert_exam(phile, aid, ctgry, cmpl_date, score1, score2, score3, score4, sc
         except Exception:
             logger.exception()
 
-def munge():
+
+def munge(localpath):
+    """Obtain the CommonApp file and munge it."""
     # set start_time in order to see how long script takes to execute
     start_time = time.time()
     # set date and time to be added to the filename
@@ -184,7 +186,7 @@ def munge():
             engine = get_engine(EARL)
             # set directory and filename where to read from
             filename=('{0}carthage_applications.txt'.format(
-                settings.COMMONAPP_CSV_OUTPUT
+                settings.COMMONAPP_CSV_OUTPUT,
             ))
             sql_file.write(HEADER)
             sql_file.write('-- CREATES APPLICATION FROM COMMON APP DATA\n')
@@ -223,28 +225,27 @@ def munge():
                             "{0}", "{1}", "{2}"
                         );
                         """.format(temp_uuid, paymentMethod, waiverCode)
-                        sql_file.write(q_create_app)
-                        sql_file.write('\n')
-                        logger.info("Inserted into apptmp_rec");
+                        sql_file.write('{0}\n'.format(q_create_app))
+                        logger.info("Inserted into apptmp_rec")
                         do_sql(q_create_app, key=INFORMIX_DEBUG, earl=EARL)
                     except Exception:
                         logger.exception()
                     # fetch id from apptmp_no table
-                    lookup_apptmp_no = '''
+                    lookup_apptmp_no = """
                     SELECT
                         apptmp_no
                     FROM
                         apptmp_rec
                     WHERE
                         reason_txt = "{0}";
-                    ''' .format(temp_uuid)
+                    """.format(temp_uuid)
                     sqlresult = do_sql(lookup_apptmp_no, earl=EARL)
-                    sql_file.write(lookup_apptmp_no+'\n');
+                    sql_file.write('{0}\n'.format(lookup_apptmp_no))
                     results = sqlresult.fetchone()
                     # sets the apptmp_no variable which is used through out
                     # the queries
                     apptmp_no = (results[0])
-                    apptmp_no_list.append(str(apptmp_no));
+                    apptmp_no_list.append(str(apptmp_no))
                     sql_file.write(HEADER)
                     sql_file.write('{0} {1} {2} - {3}\n'.format(
                         '-- START INSERT NEW STUDENT APPLICATION for:',
@@ -253,10 +254,11 @@ def munge():
                         str(apptmp_no),
                     ))
                     sql_file.write(HEADER)
-                    logger.info('Begin Student Application: {0} {1} {2}'.format(
+                    logger.info('Begin Student Application:')
+                    logger.info(
                         str(apptmp_no),
                         row['firstName'],
-                        row['lastName']),
+                        row['lastName'],
                     )
                     # fetch id from app_voucher on mySQL dB (admissions)
                     # insert into app_vouchers_users on mySQL dB
@@ -272,42 +274,66 @@ def munge():
                                 AND
                                     REPLACE(code,"-","") = "{0}"
                             """ .format(row['feeWaiverCode'].replace('-', ''))
-                            sql_file.write(q_match+'\n');
+                            sql_file.write('{0}\n'.format(q_match))
                             cursor.execute(q_match)
                             voucher_result = cursor.fetchone()
                         except Exception:
                             logger.exception()
                         # if no results are returned set voucher_id to zero
-                        if voucher_result == None:
-                            voucher_id = 0
-                        else:
+                        if voucher_result:
                             # if results are returned set voucher_id to result
                             voucher_id = (voucher_result[0])
                             # inserts voucher id into app_voucher_users
                             try:
-                                q_update_voucher = '''
-                                INSERT INTO app_voucher_users (voucher_id, app_id, submitted_on)
-                                VALUES ({0}, {1}, NOW())
-                                ''' .format(voucher_id, apptmp_no)
-                                sql_file.write(q_update_voucher+'\n');
-                                logger.info("Inserted into app_voucher_users"+'\n');
+                                q_update_voucher = """
+                                INSERT INTO
+                                    app_voucher_users (
+                                        voucher_id, app_id, submitted_on
+                                    )
+                                VALUES (
+                                    {0}, {1}, NOW()
+                                )
+                                """ .format(voucher_id, apptmp_no)
+                                sql_file.write('{0}\n'.format(q_update_voucher))
+                                logger.info("Inserted into app_voucher_users")
                                 cursor.execute(q_update_voucher)
                             except Exception:
                                 logger.exception()
-                    sql_file.write("--There were no waiver codes used for this application"+'\n');
+                        else:
+                            voucher_id = 0
+                    sql_file.write("--There were no waiver codes used ")
+                    sql_file.write("for this application\n")
                     # creates application temp record
                     try:
-                        q_create_id = '''
-                        INSERT INTO app_idtmp_rec
-                        (id, firstname, lastname, suffixname, cc_username, cc_password, addr_line1, addr_line2, city, st, zip, ctry, phone, ss_no,
-                        middlename, aa, add_date, ofc_add_by, upd_date, purge_date, prsp_no, name_sndx, correct_addr, decsd, valid)
-                        VALUES ({0}, "{1}", "{2}", "{3}", "{4}", "{0}", "{5}", "{6}", "{7}", "{8}", "{9}", "{10}", "{11}", "{12}", "{13}", "PERM",
-                        TODAY, "ADMS", TODAY, TODAY + 2 UNITS YEAR, "0", "", "Y", "N", "Y");
-                        ''' .format(apptmp_no, row['firstName'], row['lastName'], row['suffix'], row['emailAddress'], re.sub('\W+', ' ', row['permanentAddress1']),
-                                re.sub('\W+', ' ', row['permanentAddress2']), row['permanentAddressCity'], row['permanentAddressState'], row['permanentAddressZip'],
-                                row['permanentAddressCountry'], row['preferredPhoneNumber'].replace('+1.', ''), row['ssn'], row['middleName'])
-                        sql_file.write(q_create_id+'\n');
-                        logger.info("Inserted into app_idtmp_rec"+'\n');
+                        q_create_id = """
+                        INSERT INTO
+                            app_idtmp_rec (
+                                id, firstname, lastname, suffixname,
+                                cc_username, cc_password, addr_line1,
+                                addr_line2, city, st, zip, ctry, phone, ss_no,
+                                middlename, aa, add_date, ofc_add_by,
+                                upd_date, purge_date, prsp_no, name_sndx,
+                                correct_addr, decsd, valid
+                            )
+                        VALUES (
+                            {0}, "{1}", "{2}", "{3}", "{4}", "{0}", "{5}",
+                            "{6}", "{7}", "{8}", "{9}", "{10}", "{11}",
+                            "{12}", "{13}", "PERM", TODAY, "ADMS", TODAY,
+                            TODAY + 2 UNITS YEAR, "0", "", "Y", "N", "Y"
+                        )""".format(
+                            apptmp_no, row['firstName'], row['lastName'],
+                            row['suffix'], row['emailAddress'],
+                            re.sub('\W+', ' ', row['permanentAddress1']),
+                            re.sub('\W+', ' ', row['permanentAddress2']),
+                            row['permanentAddressCity'],
+                            row['permanentAddressState'],
+                            row['permanentAddressZip'],
+                            row['permanentAddressCountry'],
+                            row['preferredPhoneNumber'].replace('+1.', ''),
+                            row['ssn'], row['middleName'],
+                        )
+                        sql_file.write('{0}\n'.format(q_create_id))
+                        logger.info("Inserted into app_idtmp_rec");
                         do_sql(q_create_id, key=INFORMIX_DEBUG, earl=EARL)
                     except Exception:
                         logger.exception()
@@ -326,13 +352,21 @@ def munge():
                             contactConsent = 'Y'
                         # preferred phone is a Mobile
                         try:
-                            q_insert_aa_cell = '''
-                            INSERT INTO app_aatmp_rec
-                            (id, aa, beg_date, phone, opt_out)
-                            VALUES ({0}, "CELL", TODAY, "{1}", "{2}");
-                            ''' .format(apptmp_no, row['preferredPhoneNumber'].replace('+1.', ''), row['contactConsent'])
-                            sql_file.write(q_insert_aa_cell+'\n');
-                            logger.info("Inserted into app_aatmp_rec"+'\n');
+                            q_insert_aa_cell = """
+                            INSERT INTO
+                                app_aatmp_rec (
+                                    id, aa, beg_date, phone, opt_out
+                                )
+                            VALUES (
+                                {0}, "CELL", TODAY, "{1}", "{2}"
+                            )
+                            """.format(
+                                apptmp_no,
+                                row['preferredPhoneNumber'].replace('+1.', ''),
+                                row['contactConsent'],
+                            )
+                            sql_file.write('{0}\n'.format(q_insert_aa_cell))
+                            logger.info("Inserted into app_aatmp_rec")
                             do_sql(q_insert_aa_cell, key=INFORMIX_DEBUG, earl=EARL)
                         except Exception:
                             logger.exception()
@@ -349,29 +383,43 @@ def munge():
                             altType = 'HOME'
                         # alternate phone is available
                         try:
-                            q_insert_aa_cell = '''
-                            INSERT INTO app_aatmp_rec
-                            (id, aa, beg_date, phone, opt_out)
-                            VALUES ({0}, "{1}", TODAY, "{2}", "{3}");
-                            ''' .format(apptmp_no, altType, row["alternatePhoneNumber"].replace('+1.', ''), row["contactConsent"])
-                            sql_file.write(q_insert_aa_cell+'\n');
-                            logger.info("Inserted into app_aatmp_rec"+'\n');
+                            q_insert_aa_cell = """
+                            INSERT INTO
+                                app_aatmp_rec (
+                                    id, aa, beg_date, phone, opt_out
+                                )
+                            VALUES (
+                                {0}, "{1}", TODAY, "{2}", "{3}"
+                            )
+                            """.format(
+                                apptmp_no,
+                                altType,
+                                row["alternatePhoneNumber"].replace('+1.', ''),
+                                row["contactConsent"],
+                            )
+                            sql_file.write('{0}\n'.format(q_insert_aa_cell))
+                            logger.info("Inserted into app_aatmp_rec")
                             do_sql(q_insert_aa_cell, key=INFORMIX_DEBUG, earl=EARL)
                         except Exception:
                             logger.exception()
                     # creates application site record
                     try:
-                        q_create_site = '''
-                        INSERT INTO app_sitetmp_rec
-                        (id, home, site, beg_date)
-                        VALUES ({0}, "Y", "CART", TODAY);
-                        ''' .format(apptmp_no)
-                        sql_file.write(q_create_site+'\n');
-                        logger.info("Inserted into app_sitetmp_rec"+'\n');
+                        q_create_site = """
+                        INSERT INTO
+                            app_sitetmp_rec (
+                                id, home, site, beg_date
+                            )
+                        VALUES (
+                            {0}, "Y", "CART", TODAY
+                        )
+                        """.format(apptmp_no)
+                        sql_file.write('{0}\n'.format(q_create_site))
+                        logger.info("Inserted into app_sitetmp_rec")
                         do_sql(q_create_site, key=INFORMIX_DEBUG, earl=EARL)
                     except Exception:
                         logger.exception()
-                    # determine the type of studentStatus and set studentStatus and Hours Enrolled
+                    # determine the type of studentStatus and set studentStatus
+                    # and Hours Enrolled
                     if row['studentStatus'] == 'Full Time':
                         studentStatus = 'TRAD'
                         intendHoursEnrolled = 16
@@ -392,7 +440,8 @@ def munge():
                         studentStatus = 'PTSM'
                         intendHoursEnrolled = 4
                     """
-                    # fetch preferredStartTerm from Common App data ex.(Fall 2018, Spring 2018, J-Term 2018)
+                    # fetch preferredStartTerm from Common App data
+                    # ex.(Fall 2018, Spring 2018, J-Term 2018)
                     preferredStartTerm = row['preferredStartTerm']
                     # spliting preferredStartTerm
                     planArray = preferredStartTerm.split(' ')
@@ -421,8 +470,11 @@ def munge():
                     major1 = row['major1'].replace('ADM-MAJOR-', '').strip()
                     major2 = row['major2'].replace('ADM-MAJOR-', '').strip()
                     major3 = row['major3'].replace('ADM-MAJOR-', '').strip()
-                    # replacing first part of Common App code for preferred residence
-                    hsgType = row['preferredResidence'].replace('ADM-HSG_TYPE-', '').strip()
+                    # replacing first part of Common App code for
+                    # preferred residence
+                    hsgType = row['preferredResidence'].replace(
+                        'ADM-HSG_TYPE-', '',
+                    ).strip()
                     # set armedForcesStatus variables
                     if row['armedForcesStatus'] == 'Currently_serving':
                         armedForcesStatus = 'Y'
@@ -448,7 +500,8 @@ def munge():
                         parnt_mtlstat = 'O'
                     parent1 = ''
                     parent2 = ''
-                    # determine which Parent Type coming from Common App is Father or Mother
+                    # determine which Parent Type coming from Common App
+                    # is Father or Mother
                     if row['parent1Type'] == 'Father':
                         parent1 = 'F'
                     if row['parent1Type'] == 'Mother':
@@ -464,7 +517,7 @@ def munge():
                         'Parent 2': parent2,
                         'Legal Guardian': 'G',
                         'Other': 'O',
-                        'Ward of the Court/State': 'O'
+                        'Ward of the Court/State': 'O',
                     }
                     otherLivingSituation = ''
                     # create variables for Lived with based on the dictionary
@@ -476,7 +529,7 @@ def munge():
                         live_with = 'O'
                     # creates admtmp record
                     try:
-                        q_create_adm = '''
+                        q_create_adm = """
                         INSERT INTO app_admtmp_rec (
                             id, primary_app, plan_enr_sess, plan_enr_yr,
                             intend_hrs_enr, trnsfr, cl, add_date,
@@ -492,7 +545,7 @@ def munge():
                             "", "0", "N", "{8}", "{9}", "{10}", "C", "{11}",
                             "{12}", "{13}", "{14}", "{15}", "{16}", 0, "{17}"
                         );
-                        '''.format(
+                        """.format(
                             apptmp_no, planEnrollSession, planEnrollYear,
                             intendHoursEnrolled, transfer, studentType,
                             row['emailAddress'], studentStatus,
@@ -501,8 +554,8 @@ def munge():
                             live_with, otherLivingSituation, armedForcesStatus,
                             hsgType,
                         )
-                        sql_file.write(q_create_adm+'\n')
-                        logger.info("Inserted into app_admtmp_rec"+'\n')
+                        sql_file.write('{}\n'.format(q_create_adm))
+                        logger.info("Inserted into app_admtmp_rec")
                         do_sql(q_create_adm, key=INFORMIX_DEBUG, earl=EARL)
                     except Exception:
                         logger.exception()
@@ -511,19 +564,27 @@ def munge():
                         if row['schoolDiscipline'] == 'Y':
                             try:
                                 resource = 'DISMISS'
-                                q_insertText = '''
-                                INSERT INTO app_ectctmp_rec
-                                (id, tick, add_date, resrc, stat, txt)
-                                VALUES (?, ?, ?, ?, ?, ?);
-                                '''
-                                sql_file.write(q_insertText+'\n')
+                                q_insertText = """
+                                INSERT INTO
+                                    app_ectctmp_rec (
+                                        id, tick, add_date, resrc, stat, txt
+                                    )
+                                VALUES (?, ?, ?, ?, ?, ?)
+                                """
+                                sql_file.write('{0}\n'.format(q_insertText))
                                 logger.info("""
                                     Inserted into app_ectctmp_rec for
-                                    disciplinary explanation\n
+                                    disciplinary explanation.
                                 """)
                                 engine.execute(
-                                    q_insertText,
-                                    [apptmp_no, 'ADM', TODAY, resource, 'C', reasontxt]
+                                    q_insertText, [
+                                        apptmp_no,
+                                        'ADM',
+                                        TODAY,
+                                        resource,
+                                        'C',
+                                        row['disciplinaryViolationExplanation'],
+                                    ],
                                 )
                             except Exception:
                                 logger.exception()
@@ -533,35 +594,55 @@ def munge():
                     if row['alternateAddressAvailable'] == 'Y':
                         # creates aatmp record if alternate address is Y
                         try:
-                            q_insert_aa_mail = '''
-                            INSERT INTO app_aatmp_rec
-                            (line1, line2, city, st, zip, ctry, id, aa, beg_date)
-                            VALUES ("{0}", "{1}", "{2}", "{3}", "{4}", "{5}", {6}, "MAIL", TODAY);
-                            ''' .format(row['currentAddress1'], row['currentAddress2'], row['currentAddressCity'],
-                                        row['currentAddressState'], row['currentAddressZip'], row['currentAddressCountry'], apptmp_no)
-                            sql_file.write(q_insert_aa_mail)
-                            logger.info("Inserted into app_aatmp_rec"+'\n')
+                            q_insert_aa_mail = """
+                            INSERT INTO
+                                app_aatmp_rec (
+                                    line1, line2, city, st, zip, ctry, id, aa,
+                                    beg_date
+                                )
+                            VALUES (
+                                "{0}", "{1}", "{2}", "{3}", "{4}", "{5}", {6},
+                                "MAIL", TODAY
+                            )
+                            """.format(
+                                row['currentAddress1'],
+                                row['currentAddress2'],
+                                row['currentAddressCity'],
+                                row['currentAddressState'],
+                                row['currentAddressZip'],
+                                row['currentAddressCountry'],
+                                apptmp_no,
+                            )
+                            sql_file.write('{0}\n'.format(q_insert_aa_mail))
+                            logger.info("Inserted into app_aatmp_rec")
                             do_sql(q_insert_aa_mail, key=INFORMIX_DEBUG, earl=EARL)
                         except Exception:
                             logger.exception()
                     else:
-                        sql_file.write('--There were no alternate addresses for this application.\n\n');
+                        sql_file.write('--There were no alternate addresses ')
+                        sql_file.write('for this application.\n\n')
                     ################################################
                     # BEGIN - school(s) attended for a student
                     ################################################
                     if row['schoolLookupCeebCode'] != '' and row['schoolLookupCeebName'] != '':
                         if row['graduationDate'] == '':
                             graduationDate = ''
-                        else: # formatting the graduationDate
-                            graduationDate = datetime.datetime.strptime(row['graduationDate'], '%m/%Y').strftime('%Y-%m-01')
+                        else:  # formatting the graduationDate
+                            graduationDate = datetime.datetime.strptime(
+                                row['graduationDate'], '%m/%Y',
+                            ).strftime('%Y-%m-01')
                         if row['entryDate'] == '':
                             entryDate = ''
-                        else: # formatting the entryDate
-                            entryDate = datetime.datetime.strptime(row['entryDate'], '%m/%Y').strftime('%Y-%m-01')
+                        else:  # formatting the entryDate
+                            entryDate = datetime.datetime.strptime(
+                                row['entryDate'], '%m/%Y',
+                            ).strftime('%Y-%m-01')
                         if row['exitDate'] == '':
                             exitDate = ''
-                        else: # formatting the exitDate
-                            exitDate = datetime.datetime.strptime(row['exitDate'], '%m/%Y').strftime('%Y-%m-01')
+                        else:  # formatting the exitDate
+                            exitDate = datetime.datetime.strptime(
+                                row['exitDate'], '%m/%Y',
+                            ).strftime('%Y-%m-01')
                         # creates edtmp record attended by the student
                         try:
                             q_create_school = '''
@@ -951,7 +1032,7 @@ def main():
             file_size = os.stat(localpath).st_size
             if localfile.endswith(".txt"):
                 if file_size > 0:
-                    munge()
+                    munge(localpath)
                 else:
                     # email the filesize is 0 there is no data in the file
                     body = 'File {0} was found but filesize is {1}'.format(
