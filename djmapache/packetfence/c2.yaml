@@ -12,9 +12,9 @@ buffer_time:
 filter:
 - query:
     query_string:
-      query: "action: block-url AND category: command-and-control" 
+      query: "action: block-url AND category: command-and-control"
 
 alert:
   - "command"
 
-command: ["/etc/elastalert/rules/malware.py", "--test", "--alert", "%(alert)s", "--dip", "%(destination_ip)s", "--sip", "%(source_ip)s", "--sid", "2000001", "--action", "%(action)s"]
+command: ["/etc/elastalert/rules/malware.py", "--test", "--alert", "%(category)s", "--dip", "%(destination_ip)s", "--sip", "%(source_ip)s", "--sid", "2000001", "--action", "apply_security_event"]
