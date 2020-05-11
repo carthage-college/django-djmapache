@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import ftplib
+import pysftp
 import io
 import os
 import sys
@@ -69,18 +69,23 @@ def main():
         settings.OCLC_LOCAL_PATH, NOW,
     )
 
+    cnopts = pysftp.CnOpts()
+    cnopts.hostkeys = None
+    xtrnl_connection = {
+        'host': settings.OCLC_XTRNL_SRVR,
+        'username': settings.OCLC_XTRNL_USER,
+        'password': settings.OCLC_XTRNL_PASS,
+        'cnopts': cnopts,
+    }
+
     with io.open(xml_path, 'w', encoding='utf8') as xml_file:
         xml_file.write(xml)
-    with io.open(xml_path, 'rb') as xml_file:
-        xfile = "carthage_personas_draft_{0:%Y-%m-%d}.xml".format(NOW)
-        ftp = ftplib.FTP(
-            settings.OCLC_XTRNL_SRVR,
-            settings.OCLC_XTRNL_USER,
-            settings.OCLC_XTRNL_PASS,
-        )
-        ftp.cwd(settings.OCLC_XTRNL_PATH)
-        ftp.storbinary('STOR {0}'.format(xfile), xml_file)
-        ftp.quit()
+
+    xfile = "carthage_personas_draft_{0:%Y-%m-%d}.xml".format(NOW)
+    with pysftp.Connection(**xtrnl_connection) as sftp:
+        sftp.cwd(settings.OCLC_XTRNL_PATH)
+        sftp.put(xml_path, xfile)
+        sftp.close()
 
 
 if __name__ == '__main__':
