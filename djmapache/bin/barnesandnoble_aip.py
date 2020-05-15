@@ -64,16 +64,15 @@ def main():
 
     try:
         with pysftp.Connection(**xtrnl_connection) as sftp:
-            # sftp.cwd(settings.BARNESNOBLE_AIP_HOME)
+            sftp.cwd('inbox')
             if DEBUG:
                 print('put phile')
                 print(phile)
             sftp.put(phile)
             if DEBUG:
-                sftp.listdir()
+                for attr in sftp.listdir_attr():
+                    print(attr.filename, attr)
             sftp.close()
-            # deletes original file from local server
-            # os.remove(phile)
         success = True
     except Exception as error:
         success = False
