@@ -1,0 +1,20 @@
+# From example_rules/example_frequency.yaml
+es_host: elasticsearch
+es_port: 9200
+name: Security Onion ElastAlert - C2 Event
+type: frequency
+index: "*:logstash-palo-*"
+num_events: 1
+timeframe:
+    minutes: 15
+buffer_time:
+    minutes: 15
+filter:
+- query:
+    query_string:
+      query: "action: block-url AND category: command-and-control"
+
+alert:
+  - "command"
+
+command: ["/etc/elastalert/rules/malware.py", "--test", "--alert", "%(category)s", "--dip", "%(destination_ip)s", "--sip", "%(source_ip)s", "--sid", "2000001", "--action", "apply_security_event"]
