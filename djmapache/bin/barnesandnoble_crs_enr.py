@@ -63,8 +63,6 @@ def main():
     #     settings.ADIRONDACK_TXT_OUTPUT)
     # )
 
-    print(settings.BARNES_N_NOBLE_CSV_OUTPUT)
-
     # bn_course_file = settings.BARNES_N_NOBLE_CSV_OUTPUT + "courses.csv"
     # bn_enr_fil = settings.BARNES_N_NOBLE_CSV_OUTPUT + "enrollments.csv"
     # bn_usr_fil = settings.BARNES_N_NOBLE_CSV_OUTPUT + "users.csv"
@@ -75,8 +73,8 @@ def main():
     bn_usr_fil = "users.csv"
     bn_zip_fil = "carthage_bn.zip"
 
-    print(settings.BARNES_N_NOBLE_CSV_OUTPUT + bn_zip_fil)
-    # os.remove(settings.BARNES_N_NOBLE_CSV_OUTPUT + bn_zip_fil)
+    # print(settings.BARNES_N_NOBLE_CSV_OUTPUT + bn_zip_fil)
+    os.remove(settings.BARNES_N_NOBLE_CSV_OUTPUT + bn_zip_fil)
 
     """Create the headers for the three files"""
     fil = open(bn_course_file, 'w')
@@ -117,7 +115,7 @@ def main():
         #     exit(-1)
         # # --------------------------
         # Create the txt file
-        print(EARL)
+        # print(EARL)
 
         crs_qry = COURSES
 
@@ -297,12 +295,17 @@ def main():
         print(bn_zip_fil)
         print('creating archive')
         zf = zipfile.ZipFile(bn_zip_fil, mode='w')
+
+        print('add files')
+
         zf.write(bn_course_file)
         zf.write(bn_usr_fil)
         zf.write(bn_enr_fil)
-        print('add course file')
+
+        print("Move zip file")
         shutil.move(bn_zip_fil,settings.BARNES_N_NOBLE_CSV_OUTPUT)
 
+        print("Remove temp csv files")
         os.remove(bn_usr_fil)
         os.remove(bn_course_file)
         os.remove(bn_enr_fil)
