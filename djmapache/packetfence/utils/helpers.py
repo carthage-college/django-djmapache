@@ -1,27 +1,30 @@
+#! /usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import requests
+
 import json
 import logging
 
-from settings.local import API_EARL
-from settings.local import USERNAME
-from settings.local import PASSWORD
-from settings.local import LOGIN_ENDPOINT
+import requests
+from djmapache.packetfence.settings.local import API_EARL
+from djmapache.packetfence.settings.local import LOGIN_ENDPOINT
+from djmapache.packetfence.settings.local import PASSWORD
+from djmapache.packetfence.settings.local import USERNAME
 
 
 def get_token():
+    """Obtain the authentication token from packetfence API."""
     headers = {
         'accept': 'application/json',
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
     }
-    params = dict(
-        username=USERNAME,
-        password=PASSWORD
-    )
+    auth_params = {
+        'username': USERNAME,
+        'password': PASSWORD,
+    }
     url = API_EARL + LOGIN_ENDPOINT
     resp = requests.post(
-        url=url, data=json.dumps(params), headers=headers, verify=False
+        url=url, data=json.dumps(auth_params), headers=headers, verify=False,
     )
     print(resp.content.decode('utf-8'))
 
@@ -29,18 +32,20 @@ def get_token():
 
 
 def get_logger(logger_name):
+    """Created a simple logger."""
+    # create logger
+    log = logging.getLogger(logger_name)
 
-        # create logger
-        log = logging.getLogger(logger_name)
+    # create formatter and add it to the handlers
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    )
 
-        # create formatter and add it to the handlers
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    # create file handler for logger.
+    fh = logging.FileHandler('{0}.log'.format(logger_name))
+    fh.setLevel(level=logging.DEBUG)
+    fh.setFormatter(formatter)
 
-        # create file handler for logger.
-        fh = logging.FileHandler('{0}.log'.format(logger_name))
-        fh.setLevel(level=logging.DEBUG)
-        fh.setFormatter(formatter)
-
-        # add handlers to logger.
-        log.addHandler(fh)
-        return  log
+    # add handlers to logger.
+    log.addHandler(fh)
+    return log
