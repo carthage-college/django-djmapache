@@ -11,20 +11,20 @@ class Client(object):
 
     def __init__(self):
         """Initialisation for variables used throughout."""
-        self.base_url = settings.WING_API_EARL
+        self.base_url = settings.INDAHAUS_API_EARL
         self.clients_endpoint = '{0}/{1}/{2}/{3}'.format(
-            settings.WING_API_EARL,
-            settings.WING_ENDPOINT_STATS,
-            settings.WING_ENDPOINT_STATS_WIRELESS,
-            settings.WING_ENDPOINT_STATS_WIRELESS_CLIENTS,
+            settings.INDAHAUS_API_EARL,
+            settings.INDAHAUS_ENDPOINT_STATS,
+            settings.INDAHAUS_ENDPOINT_STATS_WIRELESS,
+            settings.INDAHAUS_ENDPOINT_STATS_WIRELESS_CLIENTS,
         )
 
     def get_token(self):
         """Obtain the authentication token from the API."""
         token = None
         response = requests.get(
-            '{0}/{1}'.format(self.base_url, settings.WING_ENDPOINT_LOGIN),
-            auth=(settings.WING_USERNAME, settings.WING_PASSWORD),
+            '{0}/{1}'.format(self.base_url, settings.INDAHAUS_ENDPOINT_LOGIN),
+            auth=(settings.INDAHAUS_USERNAME, settings.INDAHAUS_PASSWORD),
             verify=False,
         )
         jason = response.json()
@@ -35,7 +35,7 @@ class Client(object):
     def destroy_token(self, token):
         """Sign out from the API."""
         response = requests.get(
-            '{0}/{1}'.format(self.base_url, settings.WING_ENDPOINT_LOGOUT),
+            '{0}/{1}'.format(self.base_url, settings.INDAHAUS_ENDPOINT_LOGOUT),
             cookies={'auth_token': token},
             verify=False,
         )

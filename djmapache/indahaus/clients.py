@@ -6,9 +6,9 @@ import sys
 import requests
 import urllib3
 from django.conf import settings
+from djmapache.indahaus.manager import Client
 from djmapache.packetfence.settings.local import API_EARL
 from djmapache.packetfence.utils.helpers import get_token as get_token_nac
-from djmapache.wingapi.manager import Client
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 
@@ -19,22 +19,19 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 def main():
     """Display the number of nodes."""
     client = Client()
-    for domain in settings.WING_RF_DOMAINS:
-        token_wing = client.get_token()
-        devices = client.get_devices(domain, token_wing)
+    for domain in settings.INDAHAUS_RF_DOMAINS:
+        token = client.get_token()
+        devices = client.get_devices(domain, token)
         if devices:
             pids = []
             # auth token from NAC
-            token_nac = get_token_nac()
-            if settings.DEBUG:
-                print(token_nac)
             headers = {
-                'accept': 'application/json', 'Authorization': token_nac,
+                'accept': 'application/json', 'Authorization': get_token_nac(),
             }
             if settings.DEBUG:
                 print(headers)
-            for device_wifi in devices:
-                mac = device_wifi['mac'].replace('-', ':')
+            for device_wap in devices:
+                mac = device_wap['mac'].replace('-', ':')
                 if settings.DEBUG:
                     print(mac)
                 url = '{0}{1}/{2}'.format(
@@ -59,7 +56,7 @@ def main():
             print('count: {0}'.format(len(pids)))
             print('folks:')
             print(pids)
-            client.destroy_token(token_wing)
+            client.destroy_token(token)
 
 
 if __name__ == "__main__":

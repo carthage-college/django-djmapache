@@ -9,10 +9,12 @@ from django.conf import settings
 
 def main():
     """Display the number of nodes."""
-    url = '{0}/{1}'.format(settings.WING_API_EARL, settings.WING_ENDPOINT_LOGIN)
+    url = '{0}/{1}'.format(
+        settings.INDAHAUS_API_EARL, settings.INDAHAUS_ENDPOINT_LOGIN,
+    )
     resp = requests.get(
         url,
-        auth=(settings.WING_USERNAME, settings.WING_PASSWORD),
+        auth=(settings.INDAHAUS_USERNAME, settings.INDAHAUS_PASSWORD),
         verify=False,
     )
     jason = resp.json()
