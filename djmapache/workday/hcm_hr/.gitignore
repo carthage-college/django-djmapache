@@ -1,8 +1,0 @@
-# Ignore everything in this directory
-*.csv
-*.xlsx
-/clean_data
-/raw_data
-
-# Except this file
-!.gitignore
