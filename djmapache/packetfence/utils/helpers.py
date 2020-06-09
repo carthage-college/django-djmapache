@@ -26,8 +26,6 @@ def get_token():
     resp = requests.post(
         url=url, data=json.dumps(auth_params), headers=headers, verify=False,
     )
-    print(resp.content.decode('utf-8'))
-
     return json.loads(resp.content.decode('utf-8'))['token']
 
 
