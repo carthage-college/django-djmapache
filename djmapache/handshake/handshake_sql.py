@@ -1,5 +1,7 @@
 HANDSHAKE_QUERY = '''
 
+ 
+
 SELECT Distinct TRIM(NVL(EML.line1,'')) AS email_address,
      TO_CHAR(PER.id) AS username,
     TRIM(CV.ldap_name) AS auth_identifier,
@@ -108,7 +110,8 @@ SELECT Distinct TRIM(NVL(EML.line1,'')) AS email_address,
         END AS veteran,
     TRIM(IR.city)||', '||TRIM(ST.txt)||', '||IR.ctry
         AS hometown_location_attributes,
-    'FALSE' AS eu_gdpr_subject
+    'FALSE' AS eu_gdpr_subject 
+    
 FROM
     (
     SELECT id, prog, acst, subprog, deg, site, cl, adm_yr, adm_date, enr_date,
@@ -142,13 +145,16 @@ FROM
             AND (PR.CL != 'UP')
             AND (PR.lv_date IS NULL OR PR.lv_date > TODAY-60)
             AND (PR.deg_grant_date IS NULL or PR.deg_grant_date > TODAY-60)
-                 --  SCREEN OUT FIRST TIME FROSH UNTIL AUG 1
-        --   Dave's method uses role_rec, not prog_enr, stu_acad, etc.
+            
+            
+        --  SCREEN OUT FIRST TIME FROSH UNTIL AUG 1
+        --   Lisa Hinkley changed this to Jun 15
+        --   Prior to june 15, all PREFF will be excluded
          AND    PV.ID NOT IN
-        (select ID from role_rec
-        where role = 'PREFF' and end_date is null
-        and MONTH(TODAY) IN (6,7))
-
+            (select ID from role_rec
+            where role = 'PREFF' and end_date is null
+            --AND TODAY < YEAR(TODAY)||'-06-12')   --For Razor
+            AND TODAY < '06/12/'||YEAR(TODAY))  --for python
             ) rnk_prog
     WHERE row_num = 1
 
@@ -156,7 +162,7 @@ FROM
 
         INNER JOIN    id_rec        IR    ON    PER.id            =    IR.id
 
-         LEFT JOIN (SELECT id, aa, line1
+         JOIN (SELECT id, aa, line1
                 FROM aa_rec
                 WHERE aa = 'EML1' AND    TODAY BETWEEN beg_date
                 AND NVL(end_date, TODAY)
@@ -187,6 +193,7 @@ FROM
         LEFT JOIN major_table MAJ2    ON    PER.major2 = MAJ2.major
         LEFT JOIN major_table MAJ3    ON    PER.major3 = MAJ3.major
         LEFT JOIN deg_table    DEG    ON    PER.deg = DEG.deg
+        -- Lose 33 with adm_rec
         INNER JOIN adm_rec ADM    ON    PER.id = ADM.id
             AND ADM.prog = PER.prog
             AND    ADM.primary_app    =    'Y'
@@ -200,6 +207,7 @@ FROM
                 FROM aa_rec
                 WHERE aa = 'EML1' AND    TODAY BETWEEN beg_date
                 AND NVL(end_date, TODAY)
+                AND line1 is not null
             ) ADV on ADV.id = PER.adv_id
 
          LEFT JOIN
@@ -238,9 +246,13 @@ FROM
 
 
         --This join should not be an outer join, we want to limit to only
-        --  students who have registered for classes 2700 vs 2900
+        --  students who have registered for classes 
         --  will help keep no-shows out of the system
-          JOIN (
+        --  Depending on the time of year, this can limit the numbers of
+        --  students selected a great deal
+        --  PREFF who are allowed into the general pool, will be screened out
+        --  here until they register
+            JOIN (
                  select distinct sr.prog, sr.id, sr.subprog,
                 sr.cum_gpa, sr.yr, sr.subprog, sr.reg_upd_date,
                  sr.sess, sr.yr, sr.prog, sr.acst, sr.wd_date
@@ -254,8 +266,8 @@ FROM
                 and sr.wd_date is null
             )  SAR
               ON SAR.id = PER.id
-              AND SAR.prog = PER.prog
-
+              AND SAR.prog = PER.prog 
+ 
 
         LEFT JOIN (select conc, txt from conc_table
             WHERE LEFT(cip_no,2) in ('51')) CT1
@@ -267,6 +279,5 @@ FROM
             WHERE LEFT(cip_no,2) in ('51')) CT3
             ON CT3.conc = PER.conc3
 
-WHERE
-    EML.line1 IS NOT NULL
+
 '''
