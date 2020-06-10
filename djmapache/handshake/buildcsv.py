@@ -61,6 +61,33 @@ parser.add_argument(
     dest="database"
 )
 
+
+def fn_send_mail(to, frum, body, subject):
+    """
+    Stock sendmail in core does not have reply to or split of to emails
+    --email to addresses may come as list
+    """
+
+    server = smtplib.SMTP('localhost')
+    try:
+        msg = MIMEText(body)
+        msg['To'] = to
+        msg['From'] = frum
+        msg['Subject'] = subject
+        txt = msg.as_string()
+
+        # print("ready to send")
+        # show communication with the server
+        # if debug:
+        #     server.set_debuglevel(True)
+        # print(msg['To'])
+        # print(msg['From'])
+        server.sendmail(frum, to.split(','), txt)
+
+    finally:
+        server.quit()
+        # print("Done")
+        pass
 def fn_write_error(msg):
     # create error file handler and set level to error
     handler = logging.FileHandler(
@@ -128,8 +155,8 @@ def main():
             # there was no file found on the server
             SUBJECT = '[Handshake Application] failed'
             BODY = "There was no .csv output file to move."
-            sendmail(
-                settings.HANDSHAKE_TO_EMAIL,settings.HANDSHAKE_FROM_EMAIL,
+            fn_send_mail(
+                settings.HANDSHAKE_TO_EMAIL, settings.HANDSHAKE_FROM_EMAIL,
                 BODY, SUBJECT
             )
             fn_write_error("There was no .csv output file to move.")
@@ -170,6 +197,7 @@ def main():
 
         connection = get_connection(EARL)
         # connection closes when exiting the 'with' block
+        # print(HANDSHAKE_QUERY)
         with connection:
             data_result = xsql(
                 HANDSHAKE_QUERY, connection, key=settings.INFORMIX_DEBUG
@@ -179,7 +207,7 @@ def main():
         if ret is None:
             SUBJECT = '[Handshake Application] failed'
             BODY = "SQL Query returned no data."
-            sendmail(
+            fn_send_mail(
                 settings.HANDSHAKE_TO_EMAIL,settings.HANDSHAKE_FROM_EMAIL,
                 BODY, SUBJECT
             )
@@ -220,7 +248,7 @@ def main():
         fn_write_error("Error in handshake buildcsv.py, Error = " + repr(e))
         SUBJECT = '[Handshake Application] Error'
         BODY = "Error in handshake buildcsv.py, Error = " + repr(e)
-        sendmail(settings.HANDSHAKE_TO_EMAIL,settings.HANDSHAKE_FROM_EMAIL,
+        fn_send_mail(settings.HANDSHAKE_TO_EMAIL,settings.HANDSHAKE_FROM_EMAIL,
             BODY, SUBJECT)
 
 if __name__ == "__main__":
