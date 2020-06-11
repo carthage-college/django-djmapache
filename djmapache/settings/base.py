@@ -40,18 +40,18 @@ USE_TZ = False
 DEFAULT_CHARSET = 'utf-8'
 FILE_CHARSET = 'utf-8'
 SERVER_URL = 'www.carthage.edu'
-API_URL = '{}/{}'.format(SERVER_URL, 'api')
+API_URL = '{0}/{0}'.format(SERVER_URL, 'api')
 LIVEWHALE_API_URL = 'https://{}'.format(SERVER_URL)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ROOT_DIR = os.path.dirname(__file__)
 ADMIN_MEDIA_PREFIX = '/static/admin/'
-ROOT_URL = '/apps/informix/'
-MEDIA_ROOT = '{}/assets/'.format(BASE_DIR)
+ROOT_URL = '/apps/mapache/'
+MEDIA_ROOT = '{0}/assets/'.format(BASE_DIR)
 MEDIA_URL = '/media/djmapache/'.format(ROOT_URL)
-STATIC_ROOT = '{}/static/'.format(ROOT_DIR)
-STATIC_URL = 'https://{}/static/djmapache/'.format(SERVER_URL)
-UPLOADS_DIR = '{}files/'.format(MEDIA_ROOT)
-UPLOADS_URL = '{}files/'.format(MEDIA_URL)
+STATIC_ROOT = '{0}/static/'.format(ROOT_DIR)
+STATIC_URL = 'https://{0}/static/djmapache/'.format(SERVER_URL)
+UPLOADS_DIR = '{0}files/'.format(MEDIA_ROOT)
+UPLOADS_URL = '{0}files/'.format(MEDIA_URL)
 ROOT_URLCONF = 'djmapache.core.urls'
 WSGI_APPLICATION = 'djmapache.wsgi.application'
 STATICFILES_DIRS = ()
@@ -84,7 +84,9 @@ INSTALLED_APPS = [
     'djmapache.core',
     # needed for template tags
     'djtools',
-    # third party apps
+    # honeypot for admin attacks
+    'admin_honeypot',
+    # sign in as a user
     'loginas',
 ]
 MIDDLEWARE = [

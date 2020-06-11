@@ -1,0 +1,6 @@
+{% extends "minimal.html" %}
+{% block content %}
+{% for d in domains %}
+{{d.domain}}: {{d.count}}<br>
+{% endfor %}
+{% endblock %}
