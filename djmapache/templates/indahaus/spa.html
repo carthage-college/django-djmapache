@@ -12,12 +12,15 @@
 <body>
 <div id="app" class="row">
   <div class="col-12 col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
-  <dl class="row">
+  <div class="row list-group">
     <template v-for="(result) in results">
-      <dt class="col-9">[[ result.domain ]]</dt>
-      <dd class="col-3">[[ result.count ]]</dd>
+      <div class="list-group-item list-group-item-action">
+        [[ result.domain ]]
+        <span style="display:inline-block; width:42px" class="badge badge-success badge-pill float-right mr-1">
+          [[ result.count ]]
+        </span>
+      </div>
     </template>
-  </dl>
   </div>
 </div>
 <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
