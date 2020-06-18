@@ -39,9 +39,10 @@ USE_L10N = False
 USE_TZ = False
 DEFAULT_CHARSET = 'utf-8'
 FILE_CHARSET = 'utf-8'
-SERVER_URL = 'www.carthage.edu'
+SERVER_URL = ''
 API_URL = '{0}/{0}'.format(SERVER_URL, 'api')
 LIVEWHALE_API_URL = 'https://{}'.format(SERVER_URL)
+STATIC_URL = 'https://{0}/static/djmapache/'.format(SERVER_URL)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ROOT_DIR = os.path.dirname(__file__)
 ADMIN_MEDIA_PREFIX = '/static/admin/'
@@ -49,7 +50,6 @@ ROOT_URL = '/apps/mapache/'
 MEDIA_ROOT = '{0}/assets/'.format(BASE_DIR)
 MEDIA_URL = '/media/djmapache/'.format(ROOT_URL)
 STATIC_ROOT = '{0}/static/'.format(ROOT_DIR)
-STATIC_URL = 'https://{0}/static/djmapache/'.format(SERVER_URL)
 UPLOADS_DIR = '{0}files/'.format(MEDIA_ROOT)
 UPLOADS_URL = '{0}files/'.format(MEDIA_URL)
 ROOT_URLCONF = 'djmapache.core.urls'
@@ -569,4 +569,12 @@ INDAHAUS_ENDPOINT_LOGOUT = ''
 INDAHAUS_ENDPOINT_STATS = ''
 INDAHAUS_ENDPOINT_STATS_WIRELESS = ''
 INDAHAUS_ENDPOINT_STATS_WIRELESS_CLIENTS = ''
-INDAHAUS_RF_DOMAINS = []
+INDAHAUS_RF_DOMAINS = (
+    (
+        'foobar',
+        [
+        ],
+        (
+        ),
+    ),
+)

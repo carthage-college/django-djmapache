@@ -50,10 +50,11 @@ def spa(request):
                         pid = device_nac['item'][key].lower()
                         if pid not in pids:
                             pids.append(pid)
-
         # sign out
         client.destroy_token(token)
-        domains.append({'domain': domain, 'pids': pids, 'count': len(pids)})
+        domains.append(
+            {'domain': domain, 'count': len(pids), 'children': children},
+        )
     return HttpResponse(
         json.dumps(domains), content_type='text/plain; charset=utf-8',
     )
