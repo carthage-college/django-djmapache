@@ -22,7 +22,8 @@ def main():
     """Display the number of nodes."""
     client = Client()
     # obtain all devices connected to an RF Domain
-    for domain in settings.INDAHAUS_RF_DOMAINS:
+    domains = settings.INDAHAUS_RF_DOMAINS
+    for idx, domain in enumerate(domains):
         token = client.get_token()
         devices = client.get_devices(domain[0], token)
         # if we have some devices go to the NAC to find out who
@@ -39,7 +40,7 @@ def main():
             # users who might have more than one device registered in an
             # RF Domain.
             for device_wap in devices:
-                ap = device_wap['ap']
+                # ap = device_wap['ap']
                 mac = device_wap['mac'].replace('-', ':')
                 if settings.DEBUG:
                     print(mac)
@@ -72,8 +73,10 @@ def main():
                 'pids': pids,
                 'count': len(pids),
             }
+            domains[idx][1] = len(pids)
             print('++++++++++++++++++++++++++++')
             print(area)
+            print(domains[idx][1])
         client.destroy_token(token)
 
 
