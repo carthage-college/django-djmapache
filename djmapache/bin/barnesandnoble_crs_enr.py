@@ -7,7 +7,8 @@ import pysftp
 import sys
 import shutil
 import zipfile
-
+import os.path
+from os import path
 
 from django.conf import settings
 from djimix.core.utils import get_connection
@@ -42,6 +43,13 @@ FROM = settings.BARNESNOBLE_FROM_EMAIL
 SUBJECT = "[Barnes & Noble] upload {status}".format
 
 
+def fn_format_date(date):
+    if len(date) == 10:
+        ret = date[6:] + "-" + date[:2] + '-' + date[3:5]
+    else:
+        ret = ""
+    return ret
+
 def main():
     """Barnes and Noble Upload."""
     ###########################################################################
@@ -74,7 +82,8 @@ def main():
     bn_zip_fil = "carthage_bn.zip"
 
     # print(settings.BARNES_N_NOBLE_CSV_OUTPUT + bn_zip_fil)
-    os.remove(settings.BARNES_N_NOBLE_CSV_OUTPUT + bn_zip_fil)
+    if path.exists(settings.BARNES_N_NOBLE_CSV_OUTPUT + bn_zip_fil):
+        os.remove(settings.BARNES_N_NOBLE_CSV_OUTPUT + bn_zip_fil)
 
     """Create the headers for the three files"""
     fil = open(bn_course_file, 'w')
@@ -143,8 +152,8 @@ def main():
                 fil = open(bn_course_file, 'a')
                 for row in ret:
                     # fil.write(row)
-                    campus = '"' + row[1] + '"'
-                    school = '"' + row[2] + '"'
+                    campus = '"' + row[0] + '"'
+                    school = '"' + row[1] + '"'
                     institutionDepartment = row[2]
                     term = '"' + row[3] + '"'
                     department = '"' + row[4] + '"'
@@ -161,14 +170,14 @@ def main():
                     crn = '"' + row[15] + '"'
                     termTitle = '"' + row[16] + '"'
                     termType = '"' + row[17] + '"'
-                    termStartDate = '"' + row[18] + '"'
-                    termEndDate = '"' + row[19] + '"'
-                    sectionStartDate = '"' + row[20] + '"'
-                    sectionEndDate = '"' + row[21] + '"'
+                    termStartDate = '"' + fn_format_date(row[18]) + '"'
+                    termEndDate = '"' + fn_format_date(row[19]) + '"'
+                    sectionStartDate = '"' + fn_format_date(row[20]) + '"'
+                    sectionEndDate = '"' + fn_format_date(row[21]) + '"'
                     classGroupId  = '"' + row[22] + '"'
                     estimatedEnrollment  =  str(row[23])
 
-                    lin = str(cnt) + "," + school + "," + \
+                    lin = str(cnt) + "," + campus + "," + school + "," + \
                         institutionDepartment + "," + term + "," + \
                         department + "," + course + "," + SectionCode + "," + \
                         campusTitle + "," + schoolTitle + "," + \
@@ -275,7 +284,7 @@ def main():
                     userid = '"' + str(row[12]) + '"'
                     includeinfee = '"' + row[13] + '"'
                     fulltimestatus = '"' + row[14] + '"'
-                    credit_hours = '"' + row[15] + '"'
+                    credit_hours = '"' + str(row[15]) + '"'
 
                     lin = str(cnt) + "," + campus + "," + school + "," + \
                           inst_dept + "," + term + "," + \
@@ -284,7 +293,7 @@ def main():
                           firstname + "," + middlename + "," + \
                           lastname + "," + role + "," + userid + "," + \
                           includeinfee + "," + fulltimestatus + "," + \
-                          credit_hours + "," + userid + "\n"
+                          credit_hours +  "\n"
 
                     # print(lin)
                     fil3.write(lin)
@@ -310,6 +319,39 @@ def main():
         os.remove(bn_course_file)
         os.remove(bn_enr_fil)
 
+    # cnopts = pysftp.CnOpts()
+    # cnopts.hostkeys = None
+    # # sFTP connection information for Barnes and Noble 1
+    # xtrnl_connection1 = {
+    #     'host': settings.BARNESNOBLE1_HOST,
+    #     'username': settings.BARNESNOBLE1_USER,
+    #     'password': settings.BARNESNOBLE1_PASS,
+    #     'port': settings.BARNESNOBLE1_PORT,
+    #     'cnopts': cnopts,
+    # }
+    # try:
+    #     with pysftp.Connection(**xtrnl_connection1) as sftp:
+    #         if DEBUG:
+    #             print(file_exencrs)
+    #         sftp.put(file_exencrs, preserve_mtime=True)
+    #         # deletes original file from our server
+    #         os.remove(file_exencrs)
+    # except Exception as error:
+    #     success = False
+    #     body = """
+    #            Unable to PUT EXENCRS.csv to Barnes and Noble server.\n\n{0}
+    #        """.format(error)
+    #     send_mail(
+    #         None,
+    #         TO,
+    #         SUBJECT(status='failed'),
+    #         FROM,
+    #         'email.html',
+    #         body,
+    #     )
+    #     if DEBUG:
+    #         print(error)
+
     except Exception as e:
         print("Error in main:  " + str(e))
         # fn_write_error("Error in barnesandnoble_crs_enr.py - Main: "
@@ -320,19 +362,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
-    # args = parser.parse_args()
-    # test = args.test
-    # database = args.database
-
-    # if not database:
-    #     print("mandatory option missing: database name\n")
-    #     parser.print_help()
-    #     exit(-1)
-    # else:
-    #     database = database.lower()
-    #
-    # if database != 'cars' and database != 'train' and database != 'sandbox':
-    #     print("database must be: 'cars' or 'train' or 'sandbox'\n")
-    #     parser.print_help()
-    #     exit(-1)
+    sys.exit(main())
