@@ -55,10 +55,10 @@ def main():
                         print(key, device_nac['item'][key])
                     if key == 'pid':
                         pid = device_nac['item'][key].lower()
-                        email = (
-                            '@' in pid and
-                            pid.split('@')[1] != settings.LDAP_EMAIL_DOMAIN
-                        )
+                        # some folks are registered with both their username
+                        # and their email address for some reason.
+                        if '@{0}'.format(settings.LDAP_EMAIL_DOMAIN) in pid:
+                            pid = pid.split('@')[0]
                         status = (
                             pid not in pids and
                             pid not in XCLUDE and
@@ -74,7 +74,6 @@ def main():
             }
             print('++++++++++++++++++++++++++++')
             print(area)
-            print('++++++++++++++++++++++++++++')
         client.destroy_token(token)
 
 
