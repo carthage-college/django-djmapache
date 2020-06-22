@@ -13,12 +13,11 @@
 <div id="app" class="row">
   <div class="col-12 col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
   <div class="row list-group">
-    <template v-for="(result) in results">
+    <template v-for="(domain) in results">
       <div class="list-group-item list-group-item-action">
-        [[ result.domain ]]
-        <span style="display:inline-block; width:42px" class="badge badge-success badge-pill float-right mr-1">
-          [[ result.count ]]
-        </span>
+        <template v-for="(item) in domain">
+        [[ item ]]
+        </template>
       </div>
     </template>
   </div>

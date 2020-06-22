@@ -15,8 +15,6 @@ from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-XCLUDE = ['default', 'admin', '1']
-
 
 def main():
     """Display the number of nodes."""
@@ -40,10 +38,11 @@ def main():
             # users who might have more than one device registered in an
             # RF Domain.
             for device_wap in devices:
-                # ap = device_wap['ap']
+                ap = device_wap['ap']
                 mac = device_wap['mac'].replace('-', ':')
                 if settings.DEBUG:
-                    print(mac)
+                    print('ap = {0}'.format(ap))
+                    print('mac = {0}'.format(mac))
                 url = '{0}{1}/{2}'.format(
                     API_EARL, settings.PACKETFENCE_NODE_ENDPOINT, mac,
                 )
@@ -61,22 +60,45 @@ def main():
                         if '@{0}'.format(settings.LDAP_EMAIL_DOMAIN) in pid:
                             pid = pid.split('@')[0]
                         status = (
-                            pid not in pids and
-                            pid not in XCLUDE and
+                            pid not in settings.INDAHAUS_XCLUDE and
                             'host/' not in pid and
                             'carthage\\' not in pid
                         )
                         if status:
-                            pids.append(pid)
-            area = {
-                'domain': domain[0],
-                'pids': pids,
-                'count': len(pids),
-            }
-            domains[idx][1] = len(pids)
+                            if pid not in pids:
+                                pids.append(pid)
+                                if settings.DEBUG:
+                                    print('domain AP = {0} / {1}'.format(ap, pid))
+                            # check for areas within a domain
+                            if domains[idx][1]['areas']:
+                                for area in domains[idx][1]['areas']:
+                                    if ap in area[2]:
+                                        if settings.DEBUG:
+                                            print('area AP = {0} / {1}'.format(
+                                                ap, pid,
+                                            ))
+                                        if pid not in area[1]:
+                                            area[1] += 1
+            # update RF domain with the total number of pids
+            domains[idx][1]['pids'] = pids
             print('++++++++++++++++++++++++++++')
-            print(area)
-            print(domains[idx][1])
+            print(
+                {
+                    'domain': domains[idx][0],
+                    'pids': domains[idx][1]['pids'],
+                    'count': len(domains[idx][1]['pids']),
+                },
+            )
+            # update areas with total number of pids
+            if domains[idx][1]['areas']:
+                print('areas:')
+                for aid, _ in enumerate(domains[idx][1]['areas']):
+                    length = len(domains[idx][1]['areas'][aid][1])
+                    domains[idx][1]['areas'][aid][1] = length
+                    print(domains[idx][1]['areas'][0])
+                    print(domains[idx][1]['areas'][aid][1])
+
+            print('----------------------------')
         client.destroy_token(token)
 
 

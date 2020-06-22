@@ -43,6 +43,9 @@ class Client(object):
 
     def get_devices(self, domain, token):
         """Obtain all devices registered on a domain controller."""
+        if settings.DEBUG:
+            print(domain)
+            print(token)
         response = requests.post(
             self.clients_endpoint,
             cookies={'auth_token': token},
