@@ -23,7 +23,7 @@ def main():
     domains = settings.INDAHAUS_RF_DOMAINS
     for idx, domain in enumerate(domains):
         token = client.get_token()
-        devices = client.get_devices(domain[0], token)
+        devices = client.get_devices(domain['name'], token)
         # if we have some devices go to the NAC to find out who
         # they are based on MAC
         pids = []
@@ -70,33 +70,34 @@ def main():
                                 if settings.DEBUG:
                                     print('domain AP = {0} / {1}'.format(ap, pid))
                             # check for areas within a domain
-                            if domains[idx][1]['areas']:
-                                for area in domains[idx][1]['areas']:
+                            if domains[idx]['areas']:
+                                for area in domains[idx]['areas']:
                                     if ap in area[2]:
                                         if settings.DEBUG:
                                             print('area AP = {0} / {1}'.format(
                                                 ap, pid,
                                             ))
                                         if pid not in area[1]:
-                                            area[1] += 1
+                                            area[1].append(pid)
+
             # update RF domain with the total number of pids
-            domains[idx][1]['pids'] = pids
+            domains[idx]['pids'] = pids
             print('++++++++++++++++++++++++++++')
             print(
                 {
-                    'domain': domains[idx][0],
-                    'pids': domains[idx][1]['pids'],
-                    'count': len(domains[idx][1]['pids']),
+                    'domain': domains[idx]['name'],
+                    'pids': domains[idx]['pids'],
+                    'count': len(domains[idx]['pids']),
                 },
             )
             # update areas with total number of pids
-            if domains[idx][1]['areas']:
+            if domains[idx]['areas']:
                 print('areas:')
-                for aid, _ in enumerate(domains[idx][1]['areas']):
-                    length = len(domains[idx][1]['areas'][aid][1])
-                    domains[idx][1]['areas'][aid][1] = length
-                    print(domains[idx][1]['areas'][0])
-                    print(domains[idx][1]['areas'][aid][1])
+                for aid, _ in enumerate(domains[idx]['areas']):
+                    length = len(domains[idx]['areas'][aid][1])
+                    domains[idx]['areas'][aid][1] = length
+                    print(domains[idx]['areas'][0])
+                    print(domains[idx]['areas'][aid][1])
 
             print('----------------------------')
         client.destroy_token(token)
