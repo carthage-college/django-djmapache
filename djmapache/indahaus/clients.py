@@ -68,20 +68,22 @@ def main():
                             if pid not in pids:
                                 pids.append(pid)
                                 if settings.DEBUG:
-                                    print('domain AP = {0} / {1}'.format(ap, pid))
+                                    print(
+                                        'domain AP = {0}/{1}'.format(ap, pid),
+                                    )
                             # check for areas within a domain
                             if domains[idx]['areas']:
                                 for area in domains[idx]['areas']:
-                                    if ap in area[2]:
+                                    if ap in area['aps']:
                                         if settings.DEBUG:
                                             print('area AP = {0} / {1}'.format(
                                                 ap, pid,
                                             ))
-                                        if pid not in area[1]:
-                                            area[1].append(pid)
+                                        if pid not in area['pids']:
+                                            area['pids'].append(pid)
 
             # update RF domain with the total number of pids
-            domains[idx]['pids'] = pids
+            domains[idx]['pids'] = len(pids)
             print('++++++++++++++++++++++++++++')
             print(
                 {
@@ -94,11 +96,10 @@ def main():
             if domains[idx]['areas']:
                 print('areas:')
                 for aid, _ in enumerate(domains[idx]['areas']):
-                    length = len(domains[idx]['areas'][aid][1])
-                    domains[idx]['areas'][aid][1] = length
-                    print(domains[idx]['areas'][0])
-                    print(domains[idx]['areas'][aid][1])
-
+                    length = len(domains[idx]['areas'][aid]['pids'])
+                    domains[idx]['areas'][aid]['pids'] = length
+                    print(domains[idx]['areas']['name'])
+                    print(domains[idx]['areas'][aid]['pids'])
             print('----------------------------')
         client.destroy_token(token)
 

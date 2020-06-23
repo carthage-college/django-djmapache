@@ -62,18 +62,18 @@ def spa(request):
                             if pid not in pids:
                                 pids.append(pid)
                             # check for areas within a domain
-                            if domains[idx][1]['areas']:
-                                for area in domains[idx][1]['areas']:
-                                    if ap in area[2]:
-                                        if pid not in area[1]:
-                                            area[1].append(pid)
+                            if domains[idx]['areas']:
+                                for area in domains[idx]['areas']:
+                                    if ap in area['aps']:
+                                        if pid not in area['pids']:
+                                            area['pids'].append(pid)
             # update RF domain with the total number of pids
-            domains[idx][1]['pids'] = len(pids)
+            domains[idx]['pids'] = len(pids)
             # update areas with total number of pids
-            if domains[idx][1]['areas']:
-                for aid, _ in enumerate(domains[idx][1]['areas']):
-                    length = len(domains[idx][1]['areas'][aid][1])
-                    domains[idx][1]['areas'][aid][1] = length
+            if domains[idx]['areas']:
+                for aid, _ in enumerate(domains[idx]['areas']):
+                    length = len(domains[idx]['areas'][aid]['pids'])
+                    domains[idx]['areas'][aid]['pids'] = length
 
         # sign out
         client.destroy_token(token)

@@ -28,6 +28,8 @@ class Client(object):
             verify=False,
         )
         jason = response.json()
+        if settings.DEBUG:
+            print('json = {0}'.format(jason))
         if jason.get('data'):
             token = jason['data'].get('auth_token')
         return token
