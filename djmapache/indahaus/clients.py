@@ -81,7 +81,8 @@ def main():
                                             ))
                                         if pid not in area['pids']:
                                             area['pids'].append(pid)
-
+                            else:
+                                domains[idx]['areas'] = None
             # update RF domain with the total number of pids
             domains[idx]['pids'] = len(pids)
             print('++++++++++++++++++++++++++++')
@@ -89,7 +90,7 @@ def main():
                 {
                     'domain': domains[idx]['name'],
                     'pids': domains[idx]['pids'],
-                    'count': len(domains[idx]['pids']),
+                    'count': domains[idx]['pids'],
                 },
             )
             # update areas with total number of pids
@@ -98,7 +99,7 @@ def main():
                 for aid, _ in enumerate(domains[idx]['areas']):
                     length = len(domains[idx]['areas'][aid]['pids'])
                     domains[idx]['areas'][aid]['pids'] = length
-                    print(domains[idx]['areas']['name'])
+                    print(domains[idx]['areas'][aid]['name'])
                     print(domains[idx]['areas'][aid]['pids'])
             print('----------------------------')
         client.destroy_token(token)
