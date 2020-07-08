@@ -1,6 +1,6 @@
 Vue.use(VueLoading);
 
-const url = 'https://hygiea.carthage.edu/apps/mapache/indahaus/clients/all/';
+const url = 'https://www.carthage.edu/apps/mapache/indahaus/clients/all/';
 const app = new Vue({
   delimiters: ['[[', ']]'],
   el: '#app',

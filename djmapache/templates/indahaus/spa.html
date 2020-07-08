@@ -8,6 +8,9 @@
  <meta name="keywords" content="">
  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
  <link href="https://cdn.jsdelivr.net/npm/vue-loading-overlay@3/dist/vue-loading.css" rel="stylesheet">
+ <style>
+ .list-group-item {padding: 0 1.75rem 0 1.25rem;}
+ </style>
 </head>
 <body>
 <div id="app" class="row">
@@ -16,7 +19,7 @@
     <template v-for="(domain) in results">
       <div class="list-group-item list-group-item-action">
         [[ domain.name ]]
-        <span style="display:inline-block; width:42px" class="badge badge-success badge-pill float-right mr-1">
+        <span style="display:inline-block;width:42px;margin-top:3px;" class="badge badge-success badge-pill float-right">
           [[ domain.pids ]]
         </span>
       </div>
@@ -24,7 +27,7 @@
         <template v-for="(area) in domain.areas">
           <div class="list-group-item list-group-item-action">
             <span class="ml-2">[[ area.name ]]</span>
-            <span style="display:inline-block; width:42px" class="badge badge-success badge-pill float-right mr-1">
+            <span style="display:inline-block;width:42px;margin-top:3px;" class="badge badge-success badge-pill float-right">
               [[ area.pids ]]
             </span>
           </div>
