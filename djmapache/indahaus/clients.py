@@ -21,19 +21,20 @@ def main():
     client = Client()
     # obtain all devices connected to an RF Domain
     domains = settings.INDAHAUS_RF_DOMAINS
+    devices = None
     for idx, domain in enumerate(domains):
         token = client.get_token()
-        devices = client.get_devices(domain['name'], token)
+        # auth token from NAC
+        headers = {
+            'accept': 'application/json', 'Authorization': get_token_nac(),
+        }
+        if settings.DEBUG:
+            print(headers)
+        devices = client.get_devices(domain['id'], token)
         # if we have some devices go to the NAC to find out who
         # they are based on MAC
         pids = []
         if devices:
-            # auth token from NAC
-            headers = {
-                'accept': 'application/json', 'Authorization': get_token_nac(),
-            }
-            if settings.DEBUG:
-                print(headers)
             # iterate over the devices from the NAC to remove any duplicate
             # users who might have more than one device registered in an
             # RF Domain.
@@ -83,12 +84,14 @@ def main():
                                             area['pids'].append(pid)
                             else:
                                 domains[idx]['areas'] = None
+            print(pids)
             # update RF domain with the total number of pids
             domains[idx]['pids'] = len(pids)
             print('++++++++++++++++++++++++++++')
             print(
                 {
-                    'domain': domains[idx]['name'],
+                    'id': domains[idx]['id'],
+                    'name': domains[idx]['name'],
                     'pids': domains[idx]['pids'],
                     'count': domains[idx]['pids'],
                 },
@@ -97,11 +100,15 @@ def main():
             if domains[idx]['areas']:
                 print('areas:')
                 for aid, _ in enumerate(domains[idx]['areas']):
+                    print(domains[idx]['areas'][aid]['name'])
+                    print('pids = {0}'.format(domains[idx]['areas'][aid]['pids']))
                     length = len(domains[idx]['areas'][aid]['pids'])
                     domains[idx]['areas'][aid]['pids'] = length
-                    print(domains[idx]['areas'][aid]['name'])
-                    print(domains[idx]['areas'][aid]['pids'])
+                    print('count = {0}'.format(domains[idx]['areas'][aid]['pids']))
             print('----------------------------')
+
+        # destory client otherwise we max out the number of connections allowed
+        # to the API
         client.destroy_token(token)
 
 

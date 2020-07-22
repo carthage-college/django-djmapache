@@ -30,15 +30,15 @@ def spa(request):
     domains = settings.INDAHAUS_RF_DOMAINS
     for idx, domain in enumerate(domains):
         token = client.get_token()
+        headers = {
+            'accept': 'application/json',
+            'Authorization': get_token_nac(),
+        }
         try:
-            devices = client.get_devices(domain['name'], token)
+            devices = client.get_devices(domain['id'], token)
             pids = []
             if devices:
                 # auth token from NAC
-                headers = {
-                    'accept': 'application/json',
-                    'Authorization': get_token_nac(),
-                }
                 for device_wap in devices:
                     ap = device_wap['ap']
                     mac = device_wap['mac'].replace('-', ':')

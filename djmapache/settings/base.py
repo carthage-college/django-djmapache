@@ -91,9 +91,7 @@ INSTALLED_APPS = [
 ]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    #'django.middleware.cache.UpdateCacheMiddleware',
     'django.middleware.common.CommonMiddleware',
-    #'django.middleware.cache.FetchFromCacheMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -134,19 +132,6 @@ TEMPLATES = [
         },
     },
 ]
-# caching
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-        'LOCATION': '127.0.0.1:11211',
-        'TIMEOUT': 60*60*24,
-        'KEY_PREFIX': 'djmapache_',
-        #'OPTIONS': {
-            #'MAX_ENTRIES': 80000,
-        #}
-    }
-}
-CACHE_MIDDLEWARE_ANONYMOUS_ONLY = True
 # LDAP Constants
 LDAP_SERVER = ''
 LDAP_SERVER_PWM = ''
@@ -191,7 +176,6 @@ LOGIN_REDIRECT_URL = ROOT_URL
 # needed for backwards compatability
 LOGOUT_URL = LOGOUT_REDIRECT_URL
 USE_X_FORWARDED_HOST = True
-#SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 SESSION_COOKIE_DOMAIN='.carthage.edu'
 SESSION_COOKIE_NAME ='django_djmapache_cookie'
@@ -570,12 +554,4 @@ INDAHAUS_ENDPOINT_STATS = ''
 INDAHAUS_ENDPOINT_STATS_WIRELESS = ''
 INDAHAUS_ENDPOINT_STATS_WIRELESS_CLIENTS = ''
 INDAHAUS_XCLUDE = []
-INDAHAUS_RF_DOMAINS = (
-    (
-        'foobar',
-        [
-        ],
-        (
-        ),
-    ),
-)
+INDAHAUS_RF_DOMAINS = ()
