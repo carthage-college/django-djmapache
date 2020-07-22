@@ -94,6 +94,7 @@ def main():
                     'name': domains[idx]['name'],
                     'pids': domains[idx]['pids'],
                     'count': domains[idx]['pids'],
+                    'capacity': round(domains[idx]['pids'] / domains[idx]['capacity'] * 100),
                 },
             )
             # update areas with total number of pids
@@ -105,6 +106,9 @@ def main():
                     length = len(domains[idx]['areas'][aid]['pids'])
                     domains[idx]['areas'][aid]['pids'] = length
                     print('count = {0}'.format(domains[idx]['areas'][aid]['pids']))
+                    count = domains[idx]['areas'][aid]['pids']
+                    cap = domains[idx]['areas'][aid]['capacity']
+                    print('capacity = {0}'.format(round(count / cap * 100)))
             print('----------------------------')
 
         # destory client otherwise we max out the number of connections allowed

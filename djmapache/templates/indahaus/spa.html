@@ -11,7 +11,8 @@
  <link href="/static/djmapache/css/circle.css" rel="stylesheet">
  <style>
  .list-group-item {padding: 0 1.75rem 0 1.25rem;}
- .pids {display:inline-block;width:42px;margin-top:3px;}
+ .domain-pids {display:inline-block;width:42px;margin-top:3px;}
+ .domain-name {font-size: 2em;}
  </style>
 </head>
 <body>
@@ -20,27 +21,35 @@
   <div class="row list-group">
     <template v-for="(domain) in results">
       <template v-if="domain.active">
-        <div class="list-group-item list-group-item-action">
+        <div class="domain-name list-group-item list-group-item-action">
           [[ domain.name ]]
-          <span class="pids badge badge-success badge-pill float-right">
-            [[ domain.pids ]]
-          </span>
+          <div :class="'c100 small float-right p' + domain.capacity">
+            <span>[[ domain.pids ]]</span>
+            <div class="slice">
+              <div class="bar"></div>
+              <div class="fill"></div>
+            </div>
+          </div>
         </div>
       </template>
       <template v-if="domain.areas">
         <template v-for="(area) in domain.areas">
-          <div class="list-group-item list-group-item-action">
+          <div class="domain-name list-group-item list-group-item-action">
             <template v-if="domain.active">
             <span class="ml-2">
             </template>
             <template v-else>
             <span>
             </template>
-                [[ area.name ]]
+              [[ area.name ]]
             </span>
-            <span class="pids badge badge-success badge-pill float-right">
-              [[ area.pids ]]
-            </span>
+            <div :class="'c100 small float-right p' + domain.capacity">
+              <span>[[ area.pids ]]</span>
+              <div class="slice">
+                <div class="bar"></div>
+                <div class="fill"></div>
+              </div>
+            </div>
           </div>
         </template>
       </template>
