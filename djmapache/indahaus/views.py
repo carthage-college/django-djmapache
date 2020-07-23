@@ -71,15 +71,15 @@ def clients(request):
                             else:
                                 domains[idx]['areas'] = None
             # update RF domain with the total number of pids
-            domains[idx]['pids'] = len(pids)
+            domains[idx]['occupied'] = len(pids)
             domains[idx]['percent'] = round(
-                domains[idx]['pids'] / domains[idx]['capacity'] * 100,
+                domains[idx]['occupied'] / domains[idx]['capacity'] * 100,
             )
             # update areas with total number of pids
             if domains[idx]['areas']:
                 for aid, _ in enumerate(domains[idx]['areas']):
                     count = len(domains[idx]['areas'][aid]['pids'])
-                    domains[idx]['areas'][aid]['pids'] = count
+                    domains[idx]['areas'][aid]['occupied'] = count
                     cap = domains[idx]['areas'][aid]['capacity']
                     domains[idx]['areas'][aid]['percent'] = round(
                         count / cap * 100,
@@ -87,8 +87,10 @@ def clients(request):
 
     # destroy the authentication token
     client.destroy_token(token)
+    context = {'domains': domains}
+    domains = None
 
-    return render(request, 'indahaus/clients.html', {'domains': domains})
+    return render(request, 'indahaus/clients.html', context)
 
 
 @portal_auth_required(
