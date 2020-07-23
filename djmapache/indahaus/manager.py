@@ -4,7 +4,6 @@ import json
 
 import requests
 from django.conf import settings
-from django.core.cache import cache
 
 
 class Client(object):
@@ -44,16 +43,11 @@ class Client(object):
 
     def get_devices(self, domain, token):
         """Obtain all devices registered on a domain controller."""
-        key = 'djmapache_indahaus_device_{0}'.format(domain)
-        devices = cache.get(key)
-        if not devices:
-            response = requests.post(
-                self.clients_endpoint,
-                cookies={'auth_token': token},
-                data=json.dumps({'rf-domain': domain}),
-                verify=False,
-            )
-            jason = response.json()
-            devices = jason.get('data')
-            cache.set(key, devices)
-        return devices
+        response = requests.post(
+            self.clients_endpoint,
+            cookies={'auth_token': token},
+            data=json.dumps({'rf-domain': domain}),
+            verify=False,
+        )
+        jason = response.json()
+        return jason.get('data')

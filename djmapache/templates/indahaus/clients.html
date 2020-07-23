@@ -1,6 +1,56 @@
 {% extends "minimal.html" %}
+{% block extra_style %}
+ <link href="/static/djmapache/css/circle.css" rel="stylesheet">
+ <style>
+ .list-group-item {padding: 0 1.75rem 0 1.25rem;}
+ .domain-pids {display:inline-block;width:42px;margin-top:3px;}
+ .domain-name {font-size: 2em;}
+ </style>
+{% endblock %}
 {% block content %}
-{% for d in domains %}
-{{d.domain}}: {{d.count}}<br>
-{% endfor %}
+<div id="app" class="row">
+  <div class="col-12 col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+    <div class="row list-group">
+    {% for domain in domains %}
+      {% if domain.active %}
+        <div class="domain-name list-group-item list-group-item-action">
+          {{domain.name}}
+          <div class="c100 small float-right p{{domain.percent}}">
+            <span>{{domain.pids}}</span>
+            <div class="slice">
+              <div class="bar"></div>
+              <div class="fill"></div>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+      {% if domain.areas %}
+        {% for area in domain.areas %}
+          <div class="domain-name list-group-item list-group-item-action">
+            {% if domain.active %}
+            <span class="ml-2">
+              <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            </template>
+            {% else %}
+            <span>
+            {% endif %}
+            {{area.name}}
+            </span>
+            <div class="c100 small float-right p{{area.percent}}">
+              <span>{{area.pids}}</span>
+              <div class="slice">
+                <div class="bar"></div>
+                <div class="fill"></div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endfor %}
+    </div>
+    <!-- /.row -->
+  </div>
+  <!-- /.col-* -->
+</div>
+<!-- /#app -->
 {% endblock %}

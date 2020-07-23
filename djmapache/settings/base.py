@@ -126,12 +126,20 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.messages.context_processors.messages',
             ],
-            #'loaders': [
-            #    # insert your TEMPLATE_LOADERS here
-            #]
         },
     },
 ]
+# caching
+'''
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': '127.0.0.1:11211',
+        'TIMEOUT': 60 * 60 * 24,
+        'KEY_PREFIX': 'djmapache_',
+    },
+}
+'''
 # LDAP Constants
 LDAP_SERVER = ''
 LDAP_SERVER_PWM = ''
@@ -189,10 +197,12 @@ EMAIL_PORT = 587
 EMAIL_FAIL_SILENTLY = False
 DEFAULT_FROM_EMAIL = ''
 SERVER_EMAIL = ''
-SERVER_MAIL=''
+SERVER_MAIL = ''
 REQUIRED_ATTRIBUTE = True
 # logging
-LOG_FILEPATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'logs/')
+LOG_FILEPATH = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'logs/',
+)
 DEBUG_LOG_FILENAME = LOG_FILEPATH + 'debug.log'
 INFO_LOG_FILENAME = LOG_FILEPATH + 'info.log'
 ERROR_LOG_FILENAME = LOG_FILEPATH + 'error.log'
@@ -202,24 +212,24 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'standard': {
-            'format' : '[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s',
-            'datefmt' : '%Y/%b/%d %H:%M:%S'
+            'format': '[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s',
+            'datefmt': '%Y/%b/%d %H:%M:%S',
         },
         'verbose': {
             'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s',
-            'datefmt' : '%Y/%b/%d %H:%M:%S'
+            'datefmt': '%Y/%b/%d %H:%M:%S',
         },
         'custom': {
             'format': '%(asctime)s: %(levelname)s: %(message)s',
-            'datefmt' : '%m/%d/%Y %I:%M:%S %p'
+            'datefmt': '%m/%d/%Y %I:%M:%S %p',
         },
         'simple': {
-            'format': '%(levelname)s %(message)s'
+            'format': '%(levelname)s %(message)s',
         },
     },
     'filters': {
         'require_debug_false': {
-            '()': 'django.utils.log.RequireDebugFalse'
+            '()': 'django.utils.log.RequireDebugFalse',
         },
         'require_debug_true': {
             '()': 'django.utils.log.RequireDebugTrue',
@@ -227,70 +237,70 @@ LOGGING = {
     },
     'handlers': {
         'custom_logfile': {
-            'level':'ERROR',
-            'filters': ['require_debug_true'], # do not run error logger in production
+            'level': 'ERROR',
+            'filters': ['require_debug_true'],
             'class': 'logging.FileHandler',
             'filename': CUSTOM_LOG_FILENAME,
             'formatter': 'custom',
         },
         'info_logfile': {
-            'level':'INFO',
-            'class':'logging.handlers.RotatingFileHandler',
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
             'backupCount': 10,
             'maxBytes': 50000,
-            'filters': ['require_debug_false'], # run logger in production
+            'filters': ['require_debug_false'],
             'filename': INFO_LOG_FILENAME,
             'formatter': 'simple',
         },
         'debug_logfile': {
             'level': 'DEBUG',
-            'filters': ['require_debug_true'], # do not run debug logger in production
             'class': 'logging.FileHandler',
             'filename': DEBUG_LOG_FILENAME,
-            'formatter': 'verbose'
+            'formatter': 'verbose',
         },
         'error_logfile': {
             'level': 'ERROR',
-            'filters': ['require_debug_true'], # do not run error logger in production
+            'filters': ['require_debug_true'],
             'class': 'logging.FileHandler',
             'filename': ERROR_LOG_FILENAME,
-            'formatter': 'verbose'
+            'formatter': 'verbose',
         },
-        'console':{
-            'level':'INFO',
-            'class':'logging.StreamHandler',
-            'formatter': 'standard'
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'standard',
         },
         'mail_admins': {
             'level': 'ERROR',
             'filters': ['require_debug_false'],
             'include_html': True,
-            'class': 'django.utils.log.AdminEmailHandler'
-        }
+            'class': 'django.utils.log.AdminEmailHandler',
+        },
     },
     'loggers': {
         'djmapache': {
-            'handlers':['debug_logfile'],
+            'handlers': ['debug_logfile'],
             'propagate': True,
-            'level':'DEBUG',
+            'level': 'DEBUG',
         },
         'error_logger': {
             'handlers': ['error_logfile'],
-            'level': 'ERROR'
-         },
+            'level': 'ERROR',
+        },
         'info_logger': {
             'handlers': ['info_logfile'],
-            'level': 'INFO'
+            'level': 'INFO',
         },
         'debug_logger': {
-            'handlers':['debug_logfile'],
+            'handlers': ['debug_logfile'],
+            # 'filters': ['require_debug_true'],
             'propagate': True,
-            'level':'DEBUG',
+            'level': 'DEBUG',
         },
         'django': {
-            'handlers':['console'],
+            'handlers': ['console'],
             'propagate': True,
-            'level':'WARN',
+            'level': 'WARN',
         },
         'django.db.backends': {
             'handlers': ['console'],
@@ -302,7 +312,7 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': True,
         },
-    }
+    },
 }
 # PacketFence Apps
 PACKETFENCE_API_EARL = ''

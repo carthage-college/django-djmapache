@@ -22,8 +22,8 @@ def main():
     # obtain all devices connected to an RF Domain
     domains = settings.INDAHAUS_RF_DOMAINS
     devices = None
+    token = client.get_token()
     for idx, domain in enumerate(domains):
-        token = client.get_token()
         # auth token from NAC
         headers = {
             'accept': 'application/json', 'Authorization': get_token_nac(),
@@ -47,46 +47,47 @@ def main():
                 url = '{0}{1}/{2}'.format(
                     API_EARL, settings.PACKETFENCE_NODE_ENDPOINT, mac,
                 )
-                if settings.DEBUG:
-                    print(url)
                 response = requests.get(url=url, headers=headers, verify=False)
                 device_nac = response.json()
-                for key, _ in device_nac['item'].items():
-                    if settings.DEBUG:
-                        print(key, device_nac['item'][key])
-                    if key == 'pid':
-                        pid = device_nac['item'][key].lower()
-                        # some folks are registered with both their username
-                        # and their email address for some reason.
-                        if '@{0}'.format(settings.LDAP_EMAIL_DOMAIN) in pid:
-                            pid = pid.split('@')[0]
-                        status = (
-                            pid not in settings.INDAHAUS_XCLUDE and
-                            'host/' not in pid and
-                            'carthage\\' not in pid
-                        )
-                        if status:
-                            if pid not in pids:
-                                pids.append(pid)
-                                if settings.DEBUG:
-                                    print(
-                                        'domain AP = {0}/{1}'.format(ap, pid),
-                                    )
-                            # check for areas within a domain
-                            if domains[idx]['areas']:
-                                for area in domains[idx]['areas']:
-                                    if ap in area['aps']:
-                                        if settings.DEBUG:
-                                            print('area AP = {0} / {1}'.format(
-                                                ap, pid,
-                                            ))
-                                        if pid not in area['pids']:
-                                            area['pids'].append(pid)
-                            else:
-                                domains[idx]['areas'] = None
+                if response.status_code != 404:
+                    for key, _ in device_nac['item'].items():
+                        if settings.DEBUG:
+                            print(key, device_nac['item'][key])
+                        if key == 'pid':
+                            pid = device_nac['item'][key].lower()
+                            # some folks are registered with both their username
+                            # and their email address for some reason.
+                            if '@{0}'.format(settings.LDAP_EMAIL_DOMAIN) in pid:
+                                pid = pid.split('@')[0]
+                            status = (
+                                pid not in settings.INDAHAUS_XCLUDE and
+                                'host/' not in pid and
+                                'carthage\\' not in pid
+                            )
+                            if status:
+                                if pid not in pids:
+                                    pids.append(pid)
+                                    if settings.DEBUG:
+                                        print(
+                                            'domain AP = {0}/{1}'.format(ap, pid),
+                                        )
+                                # check for areas within a domain
+                                if domains[idx]['areas']:
+                                    for area in domains[idx]['areas']:
+                                        if ap in area['aps']:
+                                            if settings.DEBUG:
+                                                print('area AP = {0} / {1}'.format(
+                                                    ap, pid,
+                                                ))
+                                            if pid not in area['pids']:
+                                                area['pids'].append(pid)
+                                else:
+                                    domains[idx]['areas'] = None
             print(pids)
             # update RF domain with the total number of pids
             domains[idx]['pids'] = len(pids)
+            count = domains[idx]['pids']
+            cap = domains[idx]['capacity']
             print('++++++++++++++++++++++++++++')
             print(
                 {
@@ -94,7 +95,7 @@ def main():
                     'name': domains[idx]['name'],
                     'pids': domains[idx]['pids'],
                     'count': domains[idx]['pids'],
-                    'capacity': round(domains[idx]['pids'] / domains[idx]['capacity'] * 100),
+                    'capacity': round(count / cap * 100),
                 },
             )
             # update areas with total number of pids
@@ -111,9 +112,9 @@ def main():
                     print('capacity = {0}'.format(round(count / cap * 100)))
             print('----------------------------')
 
-        # destory client otherwise we max out the number of connections allowed
-        # to the API
-        client.destroy_token(token)
+    # destory client otherwise we max out the number of connections allowed
+    # to the API
+    client.destroy_token(token)
 
 
 if __name__ == "__main__":
