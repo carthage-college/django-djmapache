@@ -14,9 +14,11 @@
     {% for domain in domains %}
       {% if domain.active %}
         <div class="domain-name list-group-item list-group-item-action">
+          <span{% if user.is_superuser %} title="occupied: {{domain.occupied}}"{% endif %}>
           {{domain.name}}
+          </span>
           <div class="c100 small float-right p{{domain.percent}}">
-            <span>{{domain.occupied}}</span>
+            <span>{{domain.percent}}%</span>
             <div class="slice">
               <div class="bar"></div>
               <div class="fill"></div>
@@ -28,16 +30,16 @@
         {% for area in domain.areas %}
           <div class="domain-name list-group-item list-group-item-action">
             {% if domain.active %}
-            <span class="ml-2">
+            <span class="ml-2"{% if user.is_superuser %} title="occupied: {{area.occupied}}"{% endif %}>
               <i class="fa fa-angle-double-right" aria-hidden="true"></i>
             </template>
             {% else %}
-            <span>
+            <span{% if user.is_superuser %} title="occupied: {{area.occupied}}"{% endif %}>
             {% endif %}
             {{area.name}}
             </span>
             <div class="c100 small float-right p{{area.percent}}">
-              <span>{{area.occupied}}</span>
+              <span>{{area.percent}}%</span>
               <div class="slice">
                 <div class="bar"></div>
                 <div class="fill"></div>
