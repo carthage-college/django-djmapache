@@ -47,29 +47,30 @@ def clients(request):
                 )
                 device_nac = response.json()
 
-                for key, _ in device_nac['item'].items():
-                    if key == 'pid':
-                        pid = device_nac['item'][key].lower()
-                        # some folks are registered with their username
-                        # and their email address for some reason.
-                        if '@{0}'.format(settings.LDAP_EMAIL_DOMAIN) in pid:
-                            pid = pid.split('@')[0]
-                        status = (
-                            pid not in settings.INDAHAUS_XCLUDE and
-                            'host/' not in pid and
-                            'carthage\\' not in pid
-                        )
-                        if status:
-                            if pid not in pids:
-                                pids.append(pid)
-                            # check for areas within a domain
-                            if domains[idx]['areas']:
-                                for area in domains[idx]['areas']:
-                                    if ap in area['aps']:
-                                        if pid not in area['pids']:
-                                            area['pids'].append(pid)
-                            else:
-                                domains[idx]['areas'] = None
+                if response.status_code != 404:
+                    for key, _ in device_nac['item'].items():
+                        if key == 'pid':
+                            pid = device_nac['item'][key].lower()
+                            # some folks are registered with their username
+                            # and their email address for some reason.
+                            if '@{0}'.format(settings.LDAP_EMAIL_DOMAIN) in pid:
+                                pid = pid.split('@')[0]
+                            status = (
+                                pid not in settings.INDAHAUS_XCLUDE and
+                                'host/' not in pid and
+                                'carthage\\' not in pid
+                            )
+                            if status:
+                                if pid not in pids:
+                                    pids.append(pid)
+                                # check for areas within a domain
+                                if domains[idx]['areas']:
+                                    for area in domains[idx]['areas']:
+                                        if ap in area['aps']:
+                                            if pid not in area['pids']:
+                                                area['pids'].append(pid)
+                                else:
+                                    domains[idx]['areas'] = None
             # update RF domain with the total number of pids
             domains[idx]['occupied'] = len(pids)
             domains[idx]['percent'] = round(
