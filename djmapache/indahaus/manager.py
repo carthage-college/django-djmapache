@@ -28,8 +28,6 @@ class Client(object):
             verify=False,
         )
         jason = response.json()
-        if settings.DEBUG:
-            print('json = {0}'.format(jason))
         if jason.get('data'):
             token = jason['data'].get('auth_token')
         return token
@@ -45,9 +43,6 @@ class Client(object):
 
     def get_devices(self, domain, token):
         """Obtain all devices registered on a domain controller."""
-        if settings.DEBUG:
-            print(domain)
-            print(token)
         response = requests.post(
             self.clients_endpoint,
             cookies={'auth_token': token},
@@ -55,6 +50,4 @@ class Client(object):
             verify=False,
         )
         jason = response.json()
-        if settings.DEBUG:
-            print(jason)
         return jason.get('data')
