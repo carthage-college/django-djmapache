@@ -136,6 +136,9 @@ def main():
                         row.cellphone,
                     ])
 
+            if not DEBUG:
+                file_upload(filename)
+
             # renaming old filename to newfilename and move to archive location
             shutil.copy(filename, archive_destination)
         else:
@@ -147,9 +150,6 @@ def main():
                 'email.html',
                 'No values in list.',
             )
-
-    if not DEBUG:
-        file_upload(filename)
 
 
 if __name__ == '__main__':
