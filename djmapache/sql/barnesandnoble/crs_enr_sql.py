@@ -1,8 +1,8 @@
-COURSES = '''
-SELECT 
+COURSES = '''SELECT 
          "Main" campus, TRIM(JDP.descr) school, 
          TRIM(JDP.descr) institutionDepartment, 
-         TRIM(JCR.term_code)||' '||Instructor.subsess term,
+            
+         TRIM(SMTR.sess)||' '||SMTR.yr||' '||Instructor.subsess term,
          TRIM(JDP.dept_code) Department, 
          TRIM(JCD.course_code) course, 
          TRIM(JCR.sec) SectionCode,
@@ -13,8 +13,9 @@ SELECT
          TRIM(JDP.dept_code)||' '||TRIM(JCR.course_code)||'-'||JCR.sec institutionClassCode,
             disc.disc institutionSubjectCodes, 
             disc.txt institutionSubjectsTitle, 
-            CR.crs_no crn,
-            JTR.descr termTitle, 
+            TRIM(CR.crs_no)||' '||TRIM(CR.cat)||'-'||TRIM(JCR.sec)||' '||TRIM(JTR.term_code) crn,
+            TRIM(st.txt)||' '||SMTR.yr||' '||CR.prog termTitle, 
+        
          CASE 	WHEN trim(Instructor.subsess) = ""
         	THEN "14-Week"
         		WHEN Instructor.subsess IN ('AC', '1D', '2D', 'CT', '1G', '2G')
@@ -50,6 +51,7 @@ SELECT
             and TRIM(SMTR.sess) = left(JCR.term_code,2) 
             and SMTR.yr =  SUBSTRING(JCR.term_code FROM 4 FOR 4)
             and SMTR.cat = CR.cat
+       
        JOIN 
             (select a.crs_no, a.sec_no, a.cat, a.yr, a.sess, a.subsess, 
             c.lastname as InstrName, c.firstname, c.fullname, a.fac_id, a.reg_num
@@ -79,11 +81,12 @@ SELECT
         TRIM(dt.txt) institutionDepartmentTitle, 	
         TRIM(cr.title1)||trim(cr.title2)||trim(cr.title3) courseTitle, 
         TRIM(dt.dept) ||' '||TRIM(sr.crs_no)||' ('||TRIM(sr.cat)||')'  institutionCourseCode,
-        TRIM(dt.dept) ||' '||TRIM(sr.crs_no)||'-'||TRIM(sr.sec_no)||')'  institutionClassCode,
+        TRIM(dt.dept) ||' '||TRIM(sr.crs_no)||'-'||TRIM(sr.sec_no)  institutionClassCode,
         disc.disc institutionSubjectCodes, 
         disc.txt institutionSubjectsTitle, 
-        TRIM(cr.crs_no)||' '||TRIM(cr.cat) crn,
-        TRIM(sr.sess)||' '||sr.yr termTitle, 
+        TRIM(cr.crs_no)||' '||TRIM(cr.cat)||'-'||TRIM(sr.sec_no)||' '||TRIM(SR.sess)||' '||TO_CHAR(sr.yr)||' '||TRIM(CR.prog) crn,
+        TRIM(st.txt)||' '||sr.yr||' '||CR.prog termTitle, 
+        
         CASE WHEN trim(SR.subsess) = ""
         	THEN "14-Week"
         WHEN SR.subsess IN ('AC', '1D', '2D', 'CT', '1G', '2G')
@@ -167,7 +170,7 @@ USERS = '''
         ELSE 'administrator' 
             END AS ROLE, 
         
-        trim(JPR.host_username) username 
+        trim(JPR.host_username) username, IR.id ID
         
         FROM jenzcst_rec JC
             --note jenzcst_rec will return multiple values because it has a 
@@ -199,7 +202,7 @@ USERS = '''
 ENROLLMENTS = '''      SELECT 
         'Main' campus, TRIM(JDPT.descr) school, 
         TRIM(JDPT.descr) institutionDepartment, 
-        TRIM(JTRM.descr) term, 
+             TRIM(sr.sess)||' '||sr.yr||' '||sr.subsess term,
         TRIM(JDPT.dept_code) department, 
         TRIM(JCR.course_code) course, TRIM(JCR.sec) section, 
         TRIM(JPR.e_mail) email, TRIM(IR.firstname) firstName,
@@ -251,7 +254,7 @@ ENROLLMENTS = '''      SELECT
     SELECT
         'Main' campus, TRIM(dt.txt) school, 
         TRIM(dt.txt) institutionDepartment, 
-        TRIM(sr.sess)||' '||sr.yr||' '||TRIM(cr.prog) term, 
+           TRIM(sr.sess)||' '||sr.yr||' '||TRIM(sr.subsess) term, 
         TRIM(dt.dept) department, 
         TRIM(sr.crs_no)||' ('||TRIM(sr.cat)||')'  course, 
         TRIM(sr.sec_no) section, 
