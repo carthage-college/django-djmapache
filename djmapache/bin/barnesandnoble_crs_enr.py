@@ -130,6 +130,7 @@ def main():
 
         connection = get_connection(EARL)
         # connection closes when exiting the 'with' block
+        blank = ""
         with connection:
             data_result = xsql(
                 crs_qry, connection, key=settings.INFORMIX_DEBUG
@@ -148,25 +149,28 @@ def main():
             else:
                 # print(ret)
                 cnt = 1
+
                 print("Open file 1")
                 fil = open(bn_course_file, 'a')
                 for row in ret:
                     # fil.write(row)
                     campus = '"' + row[0] + '"'
-                    school = '"' + row[1] + '"'
+                    # school = '"' + row[1] + '"'
+                    school = '"' + blank + '"'
                     institutionDepartment = row[2]
                     term = '"' + row[3] + '"'
                     department = '"' + row[4] + '"'
                     course = '"' + row[5] + '"'
                     SectionCode  = '"' + row[6] + '"'
                     campusTitle = '"' + row[7] + '"'
-                    schoolTitle  = '"' + row[8] + '"'
+                    # schoolTitle  = '"' + row[8] + '"'
+                    schoolTitle  = '"' + blank + '"'
                     institutionDepartmentTitle = '"' + row[9] + '"'
-                    courseTitle = '"' + row[10] + '"'
+                    courseTitle = '"' + row[10].strip() + '"'
                     institutionCourseCode = '"' + row[11] + '"'
                     institutionClassCode = '"' + row[12] + '"'
                     institutionSubjectCodes = '"' + row[13] + '"'
-                    institutionSubjectsTitle = '"' + row[14] + '"'
+                    institutionSubjectsTitle = '"' + row[14].strip() + '"'
                     crn = '"' + row[15] + '"'
                     termTitle = '"' + row[16] + '"'
                     termType = '"' + row[17] + '"'
@@ -222,13 +226,13 @@ def main():
                 for row in ret:
                     # print(row)
                     campus = '"' + row[0] + '"'
-                    school = '"' + row[1] + '"'
+                    school = '"' + blank + '"'
                     email = '"' + row[2] + '"'
                     firstname = '"' + row[3] + '"'
                     middlename = '"' + row[4] + '"'
                     lastname = '"' + row[5] + '"'
                     role = '"' + row[6].strip() + '"'
-                    username = '"' + row[7] + '"'
+                    username = '"' + str(row[8]) + '"'
 
                     lin = str(cnt) + "," + campus + "," + school + "," + \
                           email + "," + firstname + "," + \
@@ -269,7 +273,7 @@ def main():
                 for row in ret:
                     # print(row)
                     campus = '"' + row[0] + '"'
-                    school = '"' + row[1] + '"'
+                    school = '"' + blank + '"'
                     inst_dept = '"' + row[2] + '"'
                     term = '"' + row[3] + '"'
                     dept = '"' + row[4] + '"'
