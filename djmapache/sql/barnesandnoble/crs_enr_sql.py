@@ -34,10 +34,17 @@ COURSES = '''SELECT
         JOIN
             jenztrm_rec JTR on JTR.term_code = JCR.term_code
         AND
-            --jenztrm_rec.start_date <= ADD_MONTHS(today,6)
-            --AND
-            JTR.end_date > TODAY
-            AND right(trim(JCR.term_code),4) NOT IN ('PRDV','PARA','KUSD')
+
+            --For 2 yr history
+             JTR.start_date >=  '08-01-2018'  -- ADD_MONTHS(today,6)
+            AND 
+            JTR.start_date <=  '08-01-2020'   
+            
+            --Normal query just end date > today
+           -- --jenztrm_rec.start_date <= ADD_MONTHS(today,6)
+           -- --AND
+           -- JTR.end_date > TODAY
+           -- AND right(trim(JCR.term_code),4) NOT IN ('PRDV','PARA','KUSD')
        JOIN 
             Jenzccd_rec JCD on JCD.course_code = JCR.course_code 
             AND JCD.title IS NOT NULL 
@@ -110,8 +117,15 @@ COURSES = '''SELECT
          ON cr.crs_no = sr.crs_no
             and cr.cat = sr.cat
             AND sr.stat = 'X'
-            AND sr.end_date > TODAY
-            --AND sr.stat_date > TODAY-4
+            AND
+                        --For 2 yr history
+            sr.stat_date  >=  '08-01-2018'  -- ADD_MONTHS(today,6)
+            AND 
+            sr.stat_date  <=  '08-01-2020'   
+            
+            --Normal query just end date > today
+            --AND sr.end_date > TODAY
+            ----AND sr.stat_date > TODAY-4
             AND trim(cr.prog) NOT IN ('PRDV','PARA','KUSD') 
         JOIN 
             id_rec ir on ir.id = sr.fac_id 
@@ -227,8 +241,15 @@ ENROLLMENTS = '''      SELECT
         and JCP.status_code = "1PR"
     JOIN
         jenztrm_rec JTRM ON JTRM.term_code = JCR.term_code   
+        --AND
+        ----NORMAL QUERY TIME FRAME
+        --JTRM.end_date > TODAY
+        
+        --For 2 year history
         AND
-        JTRM.end_date > TODAY
+        JTRM.start_date >= '08-01-2018'
+        AND
+        JTRM.start_date < '08-01-2020'
         AND
         RIGHT(TRIM(JCP.term_code),4) NOT IN ('PRDV','PARA','KUSD')
         AND to_number(JCP.host_id) NOT IN 
@@ -273,7 +294,16 @@ ENROLLMENTS = '''      SELECT
     ON cr.crs_no = sr.crs_no
         AND cr.cat = sr.cat
         AND sr.stat = 'X'
-        AND sr.end_date > TODAY
+           --NORMAL QUERY TIME FRAME
+        -- AND sr.end_date > TODAY
+        
+         --For 2 year history
+        AND 
+        sr.beg_date >= '08-01-2018'
+        AND
+        sr.beg_date < '08-01-2020'
+        
+        
         AND trim(cr.prog) NOT IN ('PRDV','PARA','KUSD') 
     JOIN 
         id_rec ir ON ir.id = sr.fac_id 
