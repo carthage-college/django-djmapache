@@ -110,12 +110,6 @@ def main():
         if rows:
             # set directory and filename to be stored
             filename = '{0}students.csv'.format(settings.CONCIERGE_CSV_OUTPUT)
-            # set destination path and new filename that it will be renamed to
-            # when archived
-            archive_destination = ('{0}students_bak_{1}.csv'.format(
-                settings.CONCIERGE_CSV_ARCHIVED,
-                datetimestr,
-            ))
             # create .csv file
             with open(filename, 'w') as csvfile:
                 output = csv.writer(csvfile)
@@ -138,9 +132,6 @@ def main():
 
             if not DEBUG:
                 file_upload(filename)
-
-            # renaming old filename to newfilename and move to archive location
-            shutil.copy(filename, archive_destination)
         else:
             send_mail(
                 None,
