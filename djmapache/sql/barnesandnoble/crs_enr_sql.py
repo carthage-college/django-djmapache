@@ -16,13 +16,13 @@ COURSES = '''SELECT
             TRIM(CR.crs_no)||' '||TRIM(CR.cat)||'-'||TRIM(JCR.sec)||' '||TRIM(JTR.term_code) crn,
             TRIM(st.txt)||' '||SMTR.yr||' '||CR.prog termTitle, 
         
-         CASE 	WHEN trim(Instructor.subsess) = ""
-        	THEN "14-Week"
-        		WHEN Instructor.subsess IN ('AC', '1D', '2D', 'CT', '1G', '2G')
-        	then "8-Week"
-        		ELSE 
-        		"7-Week"
-        	END as termType, to_char(JTR.start_date, '%m/%d/%Y') termStartDate, 
+         CASE WHEN trim(Instructor.subsess) = ""
+            THEN "14-Week"
+                WHEN Instructor.subsess IN ('AC', '1D', '2D', 'CT', '1G', '2G')
+            then "8-Week"
+                ELSE 
+                "7-Week"
+            END as termType, to_char(JTR.start_date, '%m/%d/%Y') termStartDate, 
             to_char(JTR.end_date, '%m/%d/%Y') termEndDate, 
             to_char(JTR.start_date, '%m/%d/%Y') sectionStartDate, 
             to_char(JTR.end_date, '%m/%d/%Y') sectionEndDate, 
@@ -33,17 +33,9 @@ COURSES = '''SELECT
             jenzcrs_rec JCR
         JOIN
             jenztrm_rec JTR on JTR.term_code = JCR.term_code
-        AND
-
-            --For 2 yr history
-             JTR.start_date >=  '08-01-2018'  -- ADD_MONTHS(today,6)
-            AND 
-            JTR.start_date <=  '08-01-2020'   
-            
             --Normal query just end date > today
-           -- --jenztrm_rec.start_date <= ADD_MONTHS(today,6)
-           -- --AND
-           -- JTR.end_date > TODAY
+           AND
+           JTR.end_date > TODAY
            -- AND right(trim(JCR.term_code),4) NOT IN ('PRDV','PARA','KUSD')
        JOIN 
             Jenzccd_rec JCD on JCD.course_code = JCR.course_code 
@@ -95,12 +87,12 @@ COURSES = '''SELECT
         TRIM(st.txt)||' '||sr.yr||' '||CR.prog termTitle, 
         
         CASE WHEN trim(SR.subsess) = ""
-        	THEN "14-Week"
+            THEN "14-Week"
         WHEN SR.subsess IN ('AC', '1D', '2D', 'CT', '1G', '2G')
-        	then "8-Week"
+            then "8-Week"
         ELSE 
-        	"7-Week"
-        	END as termType, 
+            "7-Week"
+            END as termType, 
         to_char(sr.beg_date, '%m/%d/%Y') termStartDate, 
         to_char(sr.end_date, '%m/%d/%Y') termEndDate, 
         to_char(sr.beg_date, '%m/%d/%Y') sectionStartDate, 
@@ -117,15 +109,9 @@ COURSES = '''SELECT
          ON cr.crs_no = sr.crs_no
             and cr.cat = sr.cat
             AND sr.stat = 'X'
-            AND
-                        --For 2 yr history
-            sr.stat_date  >=  '08-01-2018'  -- ADD_MONTHS(today,6)
-            AND 
-            sr.stat_date  <=  '08-01-2020'   
-            
+                    
             --Normal query just end date > today
-            --AND sr.end_date > TODAY
-            ----AND sr.stat_date > TODAY-4
+            AND sr.end_date > TODAY
             AND trim(cr.prog) NOT IN ('PRDV','PARA','KUSD') 
         JOIN 
             id_rec ir on ir.id = sr.fac_id 
@@ -213,7 +199,7 @@ USERS = '''
            order by lastname
     '''
 
-ENROLLMENTS = '''      SELECT 
+ENROLLMENTS = '''     SELECT 
         'Main' campus, TRIM(JDPT.descr) school, 
         TRIM(JDPT.descr) institutionDepartment, 
              TRIM(sr.sess)||' '||sr.yr||' '||sr.subsess term,
@@ -238,18 +224,12 @@ ENROLLMENTS = '''      SELECT
         jenzcrs_rec JCR ON JCP.course_code = JCR.course_code
         AND JCP.sec = JCR.sec
         AND JCP.term_code = JCR.term_code
-        and JCP.status_code = "1PR"
+        --and JCP.status_code = "1PR"
     JOIN
         jenztrm_rec JTRM ON JTRM.term_code = JCR.term_code   
-        --AND
         ----NORMAL QUERY TIME FRAME
-        --JTRM.end_date > TODAY
-        
-        --For 2 year history
         AND
-        JTRM.start_date >= '08-01-2018'
-        AND
-        JTRM.start_date < '08-01-2020'
+        JTRM.end_date > TODAY
         AND
         RIGHT(TRIM(JCP.term_code),4) NOT IN ('PRDV','PARA','KUSD')
         AND to_number(JCP.host_id) NOT IN 
@@ -295,14 +275,7 @@ ENROLLMENTS = '''      SELECT
         AND cr.cat = sr.cat
         AND sr.stat = 'X'
            --NORMAL QUERY TIME FRAME
-        -- AND sr.end_date > TODAY
-        
-         --For 2 year history
-        AND 
-        sr.beg_date >= '08-01-2018'
-        AND
-        sr.beg_date < '08-01-2020'
-        
+         AND sr.end_date > TODAY
         
         AND trim(cr.prog) NOT IN ('PRDV','PARA','KUSD') 
     JOIN 
