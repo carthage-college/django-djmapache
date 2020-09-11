@@ -8,11 +8,16 @@ import sys
 import shutil
 import zipfile
 import os.path
+import datetime
+
+from datetime import date, timedelta, datetime
+
 from os import path
 
 from django.conf import settings
 from djimix.core.utils import get_connection
 from djimix.core.utils import xsql
+from django.core.cache import cache
 from djtools.utils.mail import send_mail
 
 from djmapache.sql.barnesandnoble.crs_enr_sql import COURSES, USERS, \
@@ -76,10 +81,14 @@ def main():
     # bn_usr_fil = settings.BARNES_N_NOBLE_CSV_OUTPUT + "users.csv"
     # bn_zip_fil = settings.BARNES_N_NOBLE_CSV_OUTPUT + "carthage_bn"
 
+    """To get the last query date from cache"""
+    last_sql_date = cache.get('BN_Sql_date')
+    print(last_sql_date)
+
     bn_course_file = "courses.csv"
     bn_enr_fil = "enrollments.csv"
     bn_usr_fil = "users.csv"
-    bn_zip_fil = "carthage_bn.zip"
+    bn_zip_fil = "carthage_bncroster.zip"
 
     # print(settings.BARNES_N_NOBLE_CSV_OUTPUT + bn_zip_fil)
     if path.exists(settings.BARNES_N_NOBLE_CSV_OUTPUT + bn_zip_fil):
@@ -125,6 +134,22 @@ def main():
         # # --------------------------
         # Create the txt file
         # print(EARL)
+
+        print(settings.BARNESNOBLE1_HOST)
+        print(settings.BARNESNOBLE1_HOSTKEY)
+        print(settings.BARNESNOBLE1_USER)
+        print(settings.BARNESNOBLE1_PASS)
+        print(settings.BARNESNOBLE1_PORT)
+        print(settings.BARNESNOBLE1_PRIVATE_KEY)
+
+        # xtrnl_connection = {
+        #     'host': settings.BARNESNOBLE_AIP_HOST,
+        #     'username': settings.BARNESNOBLE_AIP_USER,
+        #     'port': settings.BARNESNOBLE_AIP_PORT,
+        #     'private_key': settings.BARNESNOBLE_AIP_KEY,
+        #     'cnopts': cnopts,
+        # }
+
 
         crs_qry = COURSES
 
@@ -323,38 +348,56 @@ def main():
         os.remove(bn_course_file)
         os.remove(bn_enr_fil)
 
-    # cnopts = pysftp.CnOpts()
-    # cnopts.hostkeys = None
-    # # sFTP connection information for Barnes and Noble 1
-    # xtrnl_connection1 = {
-    #     'host': settings.BARNESNOBLE1_HOST,
-    #     'username': settings.BARNESNOBLE1_USER,
-    #     'password': settings.BARNESNOBLE1_PASS,
-    #     'port': settings.BARNESNOBLE1_PORT,
-    #     'cnopts': cnopts,
-    # }
-    # try:
-    #     with pysftp.Connection(**xtrnl_connection1) as sftp:
-    #         if DEBUG:
-    #             print(file_exencrs)
-    #         sftp.put(file_exencrs, preserve_mtime=True)
-    #         # deletes original file from our server
-    #         os.remove(file_exencrs)
-    # except Exception as error:
-    #     success = False
-    #     body = """
-    #            Unable to PUT EXENCRS.csv to Barnes and Noble server.\n\n{0}
-    #        """.format(error)
-    #     send_mail(
-    #         None,
-    #         TO,
-    #         SUBJECT(status='failed'),
-    #         FROM,
-    #         'email.html',
-    #         body,
-    #     )
-    #     if DEBUG:
-    #         print(error)
+        """PROBLEM HERE WITH THE SFTP CONNECTION NOT USING PASSWORD
+           the method used for schoology and adp not working"""
+
+
+
+        # cnopts = pysftp.CnOpts()
+        # cnopts.hostkeys = None
+        # # sFTP connection information for Barnes and Noble 1
+        # xtrnl_connection1 = {
+        #     'host': settings.BARNESNOBLE1_HOST,
+        #     'username': settings.BARNESNOBLE1_USER,
+        #     'password': settings.BARNESNOBLE1_PASS,
+        #     'port': settings.BARNESNOBLE1_PORT,
+        #     'cnopts': cnopts,
+        # }
+        # xtrnl_connection1['private_key'] = settings.BARNESNOBLE1_PRIVATE_KEY
+        # # 'private_key': = settings.BARNESNOBLE1_PRIVATE_KEY,
+        #
+        # try:
+        #     with pysftp.Connection(**xtrnl_connection1) as sftp:
+        #         sftp.chdir("/bned-sis-oneroster-mailbox-prod/data/IC90/")
+        #         # Remote Path is the ADP server and once logged in we fetch
+        #         # directory listing
+        #         remotepath = sftp.listdir()
+        #         print(remotepath)
+        #         # if DEBUG:
+        #         #     print(file_exencrs)
+        #         # sftp.put(file_exencrs, preserve_mtime=True)
+        #         # # deletes original file from our server
+        #         # os.remove(file_exencrs)
+        # except Exception as error:
+        #     success = False
+        #     body = """
+        #            Unable to PUT EXENCRS.csv to Barnes and Noble server.\n\n{0}
+        #        """.format(error)
+        #     send_mail(
+        #         None,
+        #         TO,
+        #         SUBJECT(status='failed'),
+        #         FROM,
+        #         'email.html',
+        #         body,
+        #     )
+        #     if DEBUG:
+        #         print(error)
+
+        #To set a new date in cache
+        a = datetime.now()
+        last_sql_date = a.strftime('%Y-%m-%d %H:%M:%S')
+        cache.set('BN_Sql_date', last_sql_date)
 
     except Exception as e:
         print("Error in main:  " + str(e))
