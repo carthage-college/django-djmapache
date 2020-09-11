@@ -33,7 +33,7 @@ SELECT UNIQUE
         WHEN    'TAR'   THEN    'Tarble Center'
         WHEN    'TWC'   THEN    'Todd Wehr Center'
         WHEN    ''      THEN    ''
-                        ELSE    'Bad match: ' || TRIM(REPLACE(school_rec.line3,',','[comma]'))
+                        ELSE    'Bad match: ' || REPLACE(school_rec.line3,',','[comma]')
     END) as CustomValue1, 'Standing' as CustomField2,
     CASE jenzcst_rec.status_code
         WHEN    'FAC'   THEN    'Faculty'

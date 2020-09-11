@@ -32,7 +32,7 @@ FROM
                         ELSE 'Spring'
                     END AS ePullGrp,
                     CASE
-                        WHEN sess IN ("AA","AB","RA","GA") THEN TRIM('8/11/'|| TO_CHAR(acad_cal_rec.yr))
+                        WHEN sess IN ("AA","AB","RA","GA") THEN TRIM('8/21/'|| TO_CHAR(acad_cal_rec.yr))
                         WHEN sess IN ("AG","AK","AM","GB","GC","RB","RC") THEN TRIM('01/01/' || TO_CHAR(acad_cal_rec.yr))
                         WHEN sess IN ("AS","AT","GE","RE") THEN TRIM('05/26/' || TO_CHAR(acad_cal_rec.yr))
                                                            ELSE TRIM('08/01/' || TO_CHAR(acad_cal_rec.yr))

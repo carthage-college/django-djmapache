@@ -39,19 +39,19 @@ USE_L10N = False
 USE_TZ = False
 DEFAULT_CHARSET = 'utf-8'
 FILE_CHARSET = 'utf-8'
-SERVER_URL = 'www.carthage.edu'
-API_URL = '{}/{}'.format(SERVER_URL, 'api')
+SERVER_URL = ''
+API_URL = '{0}/{0}'.format(SERVER_URL, 'api')
 LIVEWHALE_API_URL = 'https://{}'.format(SERVER_URL)
+STATIC_URL = 'https://{0}/static/djmapache/'.format(SERVER_URL)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ROOT_DIR = os.path.dirname(__file__)
 ADMIN_MEDIA_PREFIX = '/static/admin/'
-ROOT_URL = '/apps/informix/'
-MEDIA_ROOT = '{}/assets/'.format(BASE_DIR)
+ROOT_URL = '/apps/mapache/'
+MEDIA_ROOT = '{0}/assets/'.format(BASE_DIR)
 MEDIA_URL = '/media/djmapache/'.format(ROOT_URL)
-STATIC_ROOT = '{}/static/'.format(ROOT_DIR)
-STATIC_URL = 'https://{}/static/djmapache/'.format(SERVER_URL)
-UPLOADS_DIR = '{}files/'.format(MEDIA_ROOT)
-UPLOADS_URL = '{}files/'.format(MEDIA_URL)
+STATIC_ROOT = '{0}/static/'.format(ROOT_DIR)
+UPLOADS_DIR = '{0}files/'.format(MEDIA_ROOT)
+UPLOADS_URL = '{0}files/'.format(MEDIA_URL)
 ROOT_URLCONF = 'djmapache.core.urls'
 WSGI_APPLICATION = 'djmapache.wsgi.application'
 STATICFILES_DIRS = ()
@@ -84,14 +84,14 @@ INSTALLED_APPS = [
     'djmapache.core',
     # needed for template tags
     'djtools',
-    # third party apps
+    # honeypot for admin attacks
+    'admin_honeypot',
+    # sign in as a user
     'loginas',
 ]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    #'django.middleware.cache.UpdateCacheMiddleware',
     'django.middleware.common.CommonMiddleware',
-    #'django.middleware.cache.FetchFromCacheMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -126,25 +126,20 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.messages.context_processors.messages',
             ],
-            #'loaders': [
-            #    # insert your TEMPLATE_LOADERS here
-            #]
         },
     },
 ]
 # caching
+'''
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
         'LOCATION': '127.0.0.1:11211',
-        'TIMEOUT': 60*60*24,
+        'TIMEOUT': 60 * 60 * 24,
         'KEY_PREFIX': 'djmapache_',
-        #'OPTIONS': {
-            #'MAX_ENTRIES': 80000,
-        #}
-    }
+    },
 }
-CACHE_MIDDLEWARE_ANONYMOUS_ONLY = True
+'''
 # LDAP Constants
 LDAP_SERVER = ''
 LDAP_SERVER_PWM = ''
@@ -189,7 +184,6 @@ LOGIN_REDIRECT_URL = ROOT_URL
 # needed for backwards compatability
 LOGOUT_URL = LOGOUT_REDIRECT_URL
 USE_X_FORWARDED_HOST = True
-#SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 SESSION_COOKIE_DOMAIN='.carthage.edu'
 SESSION_COOKIE_NAME ='django_djmapache_cookie'
@@ -203,10 +197,12 @@ EMAIL_PORT = 587
 EMAIL_FAIL_SILENTLY = False
 DEFAULT_FROM_EMAIL = ''
 SERVER_EMAIL = ''
-SERVER_MAIL=''
+SERVER_MAIL = ''
 REQUIRED_ATTRIBUTE = True
 # logging
-LOG_FILEPATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'logs/')
+LOG_FILEPATH = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'logs/',
+)
 DEBUG_LOG_FILENAME = LOG_FILEPATH + 'debug.log'
 INFO_LOG_FILENAME = LOG_FILEPATH + 'info.log'
 ERROR_LOG_FILENAME = LOG_FILEPATH + 'error.log'
@@ -216,24 +212,24 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'standard': {
-            'format' : '[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s',
-            'datefmt' : '%Y/%b/%d %H:%M:%S'
+            'format': '[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s',
+            'datefmt': '%Y/%b/%d %H:%M:%S',
         },
         'verbose': {
             'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s',
-            'datefmt' : '%Y/%b/%d %H:%M:%S'
+            'datefmt': '%Y/%b/%d %H:%M:%S',
         },
         'custom': {
             'format': '%(asctime)s: %(levelname)s: %(message)s',
-            'datefmt' : '%m/%d/%Y %I:%M:%S %p'
+            'datefmt': '%m/%d/%Y %I:%M:%S %p',
         },
         'simple': {
-            'format': '%(levelname)s %(message)s'
+            'format': '%(levelname)s %(message)s',
         },
     },
     'filters': {
         'require_debug_false': {
-            '()': 'django.utils.log.RequireDebugFalse'
+            '()': 'django.utils.log.RequireDebugFalse',
         },
         'require_debug_true': {
             '()': 'django.utils.log.RequireDebugTrue',
@@ -241,70 +237,70 @@ LOGGING = {
     },
     'handlers': {
         'custom_logfile': {
-            'level':'ERROR',
-            'filters': ['require_debug_true'], # do not run error logger in production
+            'level': 'ERROR',
+            'filters': ['require_debug_true'],
             'class': 'logging.FileHandler',
             'filename': CUSTOM_LOG_FILENAME,
             'formatter': 'custom',
         },
         'info_logfile': {
-            'level':'INFO',
-            'class':'logging.handlers.RotatingFileHandler',
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
             'backupCount': 10,
             'maxBytes': 50000,
-            'filters': ['require_debug_false'], # run logger in production
+            'filters': ['require_debug_false'],
             'filename': INFO_LOG_FILENAME,
             'formatter': 'simple',
         },
         'debug_logfile': {
             'level': 'DEBUG',
-            'filters': ['require_debug_true'], # do not run debug logger in production
             'class': 'logging.FileHandler',
             'filename': DEBUG_LOG_FILENAME,
-            'formatter': 'verbose'
+            'formatter': 'verbose',
         },
         'error_logfile': {
             'level': 'ERROR',
-            'filters': ['require_debug_true'], # do not run error logger in production
+            'filters': ['require_debug_true'],
             'class': 'logging.FileHandler',
             'filename': ERROR_LOG_FILENAME,
-            'formatter': 'verbose'
+            'formatter': 'verbose',
         },
-        'console':{
-            'level':'INFO',
-            'class':'logging.StreamHandler',
-            'formatter': 'standard'
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'standard',
         },
         'mail_admins': {
             'level': 'ERROR',
             'filters': ['require_debug_false'],
             'include_html': True,
-            'class': 'django.utils.log.AdminEmailHandler'
-        }
+            'class': 'django.utils.log.AdminEmailHandler',
+        },
     },
     'loggers': {
         'djmapache': {
-            'handlers':['debug_logfile'],
+            'handlers': ['debug_logfile'],
             'propagate': True,
-            'level':'DEBUG',
+            'level': 'DEBUG',
         },
         'error_logger': {
             'handlers': ['error_logfile'],
-            'level': 'ERROR'
-         },
+            'level': 'ERROR',
+        },
         'info_logger': {
             'handlers': ['info_logfile'],
-            'level': 'INFO'
+            'level': 'INFO',
         },
         'debug_logger': {
-            'handlers':['debug_logfile'],
+            'handlers': ['debug_logfile'],
+            # 'filters': ['require_debug_true'],
             'propagate': True,
-            'level':'DEBUG',
+            'level': 'DEBUG',
         },
         'django': {
-            'handlers':['console'],
+            'handlers': ['console'],
             'propagate': True,
-            'level':'WARN',
+            'level': 'WARN',
         },
         'django.db.backends': {
             'handlers': ['console'],
@@ -316,7 +312,7 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': True,
         },
-    }
+    },
 }
 # PacketFence Apps
 PACKETFENCE_API_EARL = ''
@@ -558,13 +554,3 @@ ORGSYNC_PASS = ''
 ORGSYNC_CSV_OUTPUT = ''
 ORGSYNC_TO_EMAIL = []
 ORGSYNC_FROM_EMAIL = ''
-# Wing API
-INDAHAUS_API_EARL = ''
-INDAHAUS_USERNAME = ''
-INDAHAUS_PASSWORD = ''
-INDAHAUS_ENDPOINT_LOGIN = ''
-INDAHAUS_ENDPOINT_LOGOUT = ''
-INDAHAUS_ENDPOINT_STATS = ''
-INDAHAUS_ENDPOINT_STATS_WIRELESS = ''
-INDAHAUS_ENDPOINT_STATS_WIRELESS_CLIENTS = ''
-INDAHAUS_RF_DOMAINS = []

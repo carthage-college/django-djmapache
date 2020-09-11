@@ -52,8 +52,4 @@ urlpatterns = [
         TemplateView.as_view(template_name='denied.html'),
         name='access_denied',
     ),
-    # wing api
-    path(
-        'indahaus/', include('djmapache.indahaus.urls'),
-    ),
 ]
