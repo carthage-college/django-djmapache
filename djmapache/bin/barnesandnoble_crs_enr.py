@@ -135,21 +135,12 @@ def main():
         # Create the txt file
         # print(EARL)
 
-        print(settings.BARNESNOBLE1_HOST)
-        print(settings.BARNESNOBLE1_HOSTKEY)
-        print(settings.BARNESNOBLE1_USER)
-        print(settings.BARNESNOBLE1_PASS)
-        print(settings.BARNESNOBLE1_PORT)
-        print(settings.BARNESNOBLE1_PRIVATE_KEY)
-
-        # xtrnl_connection = {
-        #     'host': settings.BARNESNOBLE_AIP_HOST,
-        #     'username': settings.BARNESNOBLE_AIP_USER,
-        #     'port': settings.BARNESNOBLE_AIP_PORT,
-        #     'private_key': settings.BARNESNOBLE_AIP_KEY,
-        #     'cnopts': cnopts,
-        # }
-
+        # print(settings.BARNESNOBLE_AIP_HOST)
+        # print(settings.BARNESNOBLE_AIP_USER)
+        # print(settings.BARNESNOBLE_AIP_PORT)
+        # print(settings.BARNESNOBLE_AIP_HOME)
+        # print(settings.BARNESNOBLE_AIP_DATA)
+        # print(settings.BARNESNOBLE_AIP_KEY)
 
         crs_qry = COURSES
 
@@ -175,7 +166,7 @@ def main():
                 # print(ret)
                 cnt = 1
 
-                print("Open file 1")
+                # print("Open file 1")
                 fil = open(bn_course_file, 'a')
                 for row in ret:
                     # fil.write(row)
@@ -222,7 +213,7 @@ def main():
                     fil.write(lin)
                     cnt = cnt + 1
                 fil.close()
-                print("Close file 1")
+                # print("Close file 1")
 
 
         connection = get_connection(EARL)
@@ -245,7 +236,7 @@ def main():
             else:
                 # print(ret)
                 cnt = 1
-                print("Open file 2")
+                # print("Open file 2")
 
                 fil2 = open(bn_usr_fil, 'a')
                 for row in ret:
@@ -269,7 +260,7 @@ def main():
                     fil2.write(lin)
                     cnt = cnt + 1
                 fil2.close()
-                print("Close file 2")
+                # print("Close file 2")
 
 
 
@@ -293,7 +284,7 @@ def main():
             else:
                 # print(ret)
                 cnt = 1
-                print("Open file 3")
+                # print("Open file 3")
                 fil3 = open(bn_enr_fil, 'a')
                 for row in ret:
                     # print(row)
@@ -328,20 +319,22 @@ def main():
                     fil3.write(lin)
                     cnt = cnt + 1
                 fil3.close()
-                print("Close file 1")
+                # print("Close file 1")
 
-        print(bn_zip_fil)
-        print('creating archive')
+        # os.remove(bn_zip_fil)
+
+        # print(bn_zip_fil)
+        # print('creating archive')
         zf = zipfile.ZipFile(bn_zip_fil, mode='w')
 
-        print('add files')
+        # print('add files')
 
         zf.write(bn_course_file)
         zf.write(bn_usr_fil)
         zf.write(bn_enr_fil)
 
         print("Move zip file")
-        shutil.move(bn_zip_fil,settings.BARNES_N_NOBLE_CSV_OUTPUT)
+        shutil.move(bn_zip_fil, settings.BARNES_N_NOBLE_CSV_OUTPUT)
 
         print("Remove temp csv files")
         os.remove(bn_usr_fil)
@@ -351,18 +344,49 @@ def main():
         """PROBLEM HERE WITH THE SFTP CONNECTION NOT USING PASSWORD
            the method used for schoology and adp not working"""
 
+        cnopts = pysftp.CnOpts()
+        cnopts.hostkeys = None
+        xtrnl_connection = {
+            'host': settings.BARNESNOBLE_AIP_HOST,
+            'username': settings.BARNESNOBLE_AIP_USER,
+            'port': settings.BARNESNOBLE_AIP_PORT,
+            'private_key': settings.BARNESNOBLE_AIP_KEY,
+            'cnopts': cnopts,
+        }
+
+        try:
+            with pysftp.Connection(**xtrnl_connection) as sftp:
+
+                sftp.cwd('inbox')
+                print("Connected")
+
+                x = sftp.cwd
+                print(x)
+                
+                for attr in sftp.listdir_attr():
+                    print(attr.filename, attr)
+
+                remotepath = sftp.listdir()
+                print(remotepath)
+
+                phile = os.path.join(settings.BARNES_N_NOBLE_CSV_OUTPUT, + bn_zip_fil)
+                print("Put " + phile)
+
+                # sftp.put(phile, preserve_mtime=True)
+                # # deletes original file from our server
 
 
-        # cnopts = pysftp.CnOpts()
-        # cnopts.hostkeys = None
-        # # sFTP connection information for Barnes and Noble 1
-        # xtrnl_connection1 = {
-        #     'host': settings.BARNESNOBLE1_HOST,
-        #     'username': settings.BARNESNOBLE1_USER,
-        #     'password': settings.BARNESNOBLE1_PASS,
-        #     'port': settings.BARNESNOBLE1_PORT,
-        #     'cnopts': cnopts,
-        # }
+                for attr in sftp.listdir_attr():
+                    print(attr.filename, attr)
+
+                sftp.close()
+
+        except Exception as error:
+            print("Unable to PUT settings.BARNES_N_NOBLE_CSV_OUTPUT + "
+                  "bn_zip_fil to Barnes and Noble "
+                  "server.\n\n{0}".format(error))
+
+
         # xtrnl_connection1['private_key'] = settings.BARNESNOBLE1_PRIVATE_KEY
         # # 'private_key': = settings.BARNESNOBLE1_PRIVATE_KEY,
         #
