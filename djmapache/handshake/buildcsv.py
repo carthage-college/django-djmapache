@@ -13,11 +13,18 @@ from botocore.exceptions import ClientError
 import argparse
 import shutil
 import logging
+import smtplib
 from logging.handlers import SMTPHandler
+
 
 # env
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djmapache.settings.shell")
 from django.conf import settings
+
+from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email.mime.text import MIMEText
+from email import encoders
 
 # prime django
 import django
@@ -64,11 +71,11 @@ parser.add_argument(
 
 def fn_send_mail(to, frum, body, subject):
     """
-    Stock sendmail in core does not have reply to or split of to emails
-    --email to addresses may come as list
-    """
-
+      Stock sendmail in core does not have reply to or split of to emails
+      --email to addresses may come as list
+      """
     server = smtplib.SMTP('localhost')
+
     try:
         msg = MIMEText(body)
         msg['To'] = to
@@ -84,10 +91,18 @@ def fn_send_mail(to, frum, body, subject):
         # print(msg['From'])
         server.sendmail(frum, to.split(','), txt)
 
+    except Exception as e:
+        print(
+                "Error in utilities.py fn_send_mail:  " + repr(e))
+        # fn_write_error(
+        #     "Error in assign_notify.py:" + repr(e))
+
     finally:
         server.quit()
         # print("Done")
         pass
+
+
 def fn_write_error(msg):
     # create error file handler and set level to error
     handler = logging.FileHandler(
@@ -149,6 +164,7 @@ def main():
             # care of this scenario and we will never arrive here.
             EARL = None
 
+
         # # Archive
         # Check to see if file exists, if not send Email
         if os.path.isfile(handshakedata) != True:
@@ -204,7 +220,9 @@ def main():
             ).fetchall()
 
         ret = list(data_result)
+
         if ret is None:
+            # print("Sql error")
             SUBJECT = '[Handshake Application] failed'
             BODY = "SQL Query returned no data."
             fn_send_mail(
@@ -233,13 +251,41 @@ def main():
 
         if not test:
             # print("Upload the file")
-            client.upload_file(Filename=local_file_name, Bucket=bucket_name,
-                               Key=key_name)
-            # # THIS IS WHAT IT SHOULD LOOK LIKE - IT WORKS DO NOT LOSE!
-            # # client.upload_file(Filename='20190404_users.csv',
-            # #            Bucket='handshake-importer-uploads',
-            # #
-            # Key='importer-production-carthage/20190404_users.csv')
+            try:
+                client.upload_file(Filename=local_file_name, Bucket=bucket_name,
+                                   Key=key_name)
+                # THIS IS WHAT IT SHOULD LOOK LIKE - IT WORKS DO NOT LOSE!
+                # client.upload_file(Filename='20190404_users.csv',
+                #            Bucket='handshake-importer-uploads',
+                #
+                # Key='importer-production-carthage/20190404_users.csv')
+                # print("Should be a successful upload")
+            except boto3.exceptions.S3UploadFailedError as e:
+                # logging.error(e)
+                # print(e)
+                fn_write_error(
+                    "Error in handshake buildcsv.py S3UploadFailedError - "
+                       "Error = " + repr(e))
+            except botocore.exceptions.ClientError as e:
+                if e.response['Error']['Code'] == "404":
+                    # logging.error(e)
+                    print("The object does not exist.")
+                    fn_write_error(
+                        "Error in handshake buildcsv.py Boto error - "
+                        "object does not exist, "
+                        "Unknown error in aws.p"
+                        "Error = " + repr(e))
+                else:
+                    # print("Unknown error in aws.py " + e.message)
+                    fn_write_error(
+                        "Error in handshake buildcsv.py fn_upload_file, "
+                        "Unknown error in aws.p"
+                        "Error = " + repr(e))
+            except Exception as e:
+                # print("Error in fn_upload_file = " + e.message + e.__str__())
+                fn_write_error(
+                    "Error in handshake buildcsv.py fn_upload_file, Error = "
+                    + repr(e))
         else:
             # print("bulid but do not upload")
             pass
