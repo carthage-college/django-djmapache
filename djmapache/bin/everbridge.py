@@ -187,7 +187,7 @@ def main():
                             print("current working directory: {0}".format(
                                 sftp.getcwd(),
                             ))
-                            #sftp.put(filename, preserve_mtime=True)
+                            sftp.put(filename, preserve_mtime=True)
                             print("file uploaded:")
                             for phile in sftp.listdir():
                                 print(phile)
