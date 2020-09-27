@@ -1,8 +1,8 @@
-COURSES = '''
-   SELECT 
+COURSES = '''SELECT 
          "Main" campus, TRIM(JDP.descr) school, 
          TRIM(JDP.descr) institutionDepartment, 
-         TRIM(JCR.term_code)||' '||Instructor.subsess term,
+            
+         TRIM(SMTR.sess)||' '||SMTR.yr||' '||Instructor.subsess term,
          TRIM(JDP.dept_code) Department, 
          TRIM(JCD.course_code) course, 
          TRIM(JCR.sec) SectionCode,
@@ -13,25 +13,30 @@ COURSES = '''
          TRIM(JDP.dept_code)||' '||TRIM(JCR.course_code)||'-'||JCR.sec institutionClassCode,
             disc.disc institutionSubjectCodes, 
             disc.txt institutionSubjectsTitle, 
-            CR.crs_no crn,
-            JTR.descr termTitle, 
-            'term' termType, 
-            to_char(JTR.start_date, '%m/%d/%Y') termStartDate, 
+            TRIM(CR.crs_no)||' '||TRIM(CR.cat)||'-'||TRIM(JCR.sec)||' '||TRIM(JTR.term_code) crn,
+            TRIM(st.txt)||' '||SMTR.yr||' '||CR.prog termTitle, 
+        
+         CASE WHEN trim(Instructor.subsess) = ""
+            THEN "14-Week"
+                WHEN Instructor.subsess IN ('AC', '1D', '2D', 'CT', '1G', '2G')
+            then "8-Week"
+                ELSE 
+                "7-Week"
+            END as termType, to_char(JTR.start_date, '%m/%d/%Y') termStartDate, 
             to_char(JTR.end_date, '%m/%d/%Y') termEndDate, 
             to_char(JTR.start_date, '%m/%d/%Y') sectionStartDate, 
             to_char(JTR.end_date, '%m/%d/%Y') sectionEndDate, 
-            'Crosslisted key' classGroupId, 
+            TO_CHAR(SMTR.mtg_no) classGroupId, 
             --May have to deal with crosslisted courses in separate step in Python
             Instructor.reg_num estimatedEnrollment  
         FROM 
             jenzcrs_rec JCR
         JOIN
             jenztrm_rec JTR on JTR.term_code = JCR.term_code
-        AND
-            --jenztrm_rec.start_date <= ADD_MONTHS(today,6)
-            --AND
-            JTR.end_date > TODAY
-            AND right(trim(JCR.term_code),4) NOT IN ('PRDV','PARA','KUSD')
+            --Normal query just end date > today
+           AND
+           JTR.end_date > TODAY
+           -- AND right(trim(JCR.term_code),4) NOT IN ('PRDV','PARA','KUSD')
        JOIN 
             Jenzccd_rec JCD on JCD.course_code = JCR.course_code 
             AND JCD.title IS NOT NULL 
@@ -45,6 +50,7 @@ COURSES = '''
             and TRIM(SMTR.sess) = left(JCR.term_code,2) 
             and SMTR.yr =  SUBSTRING(JCR.term_code FROM 4 FOR 4)
             and SMTR.cat = CR.cat
+       
        JOIN 
             (select a.crs_no, a.sec_no, a.cat, a.yr, a.sess, a.subsess, 
             c.lastname as InstrName, c.firstname, c.fullname, a.fac_id, a.reg_num
@@ -74,17 +80,24 @@ COURSES = '''
         TRIM(dt.txt) institutionDepartmentTitle, 	
         TRIM(cr.title1)||trim(cr.title2)||trim(cr.title3) courseTitle, 
         TRIM(dt.dept) ||' '||TRIM(sr.crs_no)||' ('||TRIM(sr.cat)||')'  institutionCourseCode,
-        TRIM(dt.dept) ||' '||TRIM(sr.crs_no)||'-'||TRIM(sr.sec_no)||')'  institutionClassCode,
+        TRIM(dt.dept) ||' '||TRIM(sr.crs_no)||'-'||TRIM(sr.sec_no)  institutionClassCode,
         disc.disc institutionSubjectCodes, 
         disc.txt institutionSubjectsTitle, 
-        TRIM(cr.crs_no)||' '||TRIM(cr.cat) crn,
-        TRIM(sr.sess)||' '||sr.yr termTitle, 
-        'term' termType, 
+        TRIM(cr.crs_no)||' '||TRIM(cr.cat)||'-'||TRIM(sr.sec_no)||' '||TRIM(SR.sess)||' '||TO_CHAR(sr.yr)||' '||TRIM(CR.prog) crn,
+        TRIM(st.txt)||' '||sr.yr||' '||CR.prog termTitle, 
+        
+        CASE WHEN trim(SR.subsess) = ""
+            THEN "14-Week"
+        WHEN SR.subsess IN ('AC', '1D', '2D', 'CT', '1G', '2G')
+            then "8-Week"
+        ELSE 
+            "7-Week"
+            END as termType, 
         to_char(sr.beg_date, '%m/%d/%Y') termStartDate, 
         to_char(sr.end_date, '%m/%d/%Y') termEndDate, 
         to_char(sr.beg_date, '%m/%d/%Y') sectionStartDate, 
         to_char(sr.end_date, '%m/%d/%Y') sectionEndDatetartDate, 
-        'Crosslisted key' classGroupId, 
+        TO_CHAR(mtg.mtg_no)  classGroupId, 
             --May have to deal with crosslisted courses in separate step in Python
             sr.reg_num estimatedEnrollment  
             
@@ -96,8 +109,9 @@ COURSES = '''
          ON cr.crs_no = sr.crs_no
             and cr.cat = sr.cat
             AND sr.stat = 'X'
+                    
+            --Normal query just end date > today
             AND sr.end_date > TODAY
-            --AND sr.stat_date > TODAY-4
             AND trim(cr.prog) NOT IN ('PRDV','PARA','KUSD') 
         JOIN 
             id_rec ir on ir.id = sr.fac_id 
@@ -128,37 +142,43 @@ COURSES = '''
             ON MeetPattern.crs_no = sr.crs_no
             AND MeetPattern.yr = sr.yr
             AND MeetPattern.MaxMtgNo = mtg.mtg_no 
-
-    --limit 10
 '''
 
 
 USERS = '''
-    SELECT DISTINCT 
+       SELECT DISTINCT 
         'Main' Campus,  
         'Carthage College' school,  
         TRIM(JPR.e_mail) EMAIL,
         TRIM(IR.firstname) firstname, 
         TRIM(IR.middlename) middlename, 
-        TRIM(IR.lastname), lastname, 
-        
-        CASE WHEN title1.hrpay IN ('VEN', 'VKH')
-            THEN ("administrator")
-        WHEN (title1.hrpay = 'FVW' 
-                and title1.hrstat in ('AD', 'HR', 'HRPT', 'PATH', 'ADPT', 
-                'OTH', 'PDG', 'SUM', 'PTGP', 'EMER'))	
-            THEN 'administrator' 
-        WHEN (title1.hrpay = 'FVW' and title1.hrstat in ('FT', 'PT'))	
-            OR (TLE.tle = 'Y')
+        TRIM(IR.lastname) lastname, 
+        CASE  
+        WHEN (JR.hrpay = 'VKH' and JR.hrstat in ('PTGP', 'PT'))	
+            THEN 'teacher'
+        WHEN (JR.hrpay = 'FVW' and JR.hrstat in ('EMER', 'FT', 'PT', 'PTGP', 
+                'TLE'))	
             THEN 'teacher' 
-        ELSE 'student' 
-            END AS ROLE,
-        trim(JPR.host_username) username 
+        WHEN (JR.hrpay = 'DPW' and JR.hrstat in ('TLE'))	
+            THEN 'teacher'
+        WHEN (JR.hrpay = 'FVW' and JR.hrstat in ('AD', 'HR', 'HRPT', 'PATH', 'ADPT', 
+                'OTH', 'PDG', 'SUM', 'PTGP', 'EMER'))	
+            THEN 'administrator'
+        WHEN JR.hrpay IN ('VEN', 'K97')
+            THEN ("administrator")
+      
+        ELSE 'administrator' 
+            END AS ROLE, 
+        
+        trim(JPR.host_username) username, IR.id ID
+        
         FROM jenzcst_rec JC
             --note jenzcst_rec will return multiple values because it has a 
             --sequence number in the table
         JOIN id_rec IR ON IR.id =  JC.host_id	
-        AND status_code not in ('PGR', 'ALM',  'PTR')
+            
+        AND status_code not in ('PGR', '7WK', 'ALM',  'PTR', 'PFF', 'RCT', 
+            'STU', 'FWS', 'CAN', 'MED', 'SUA')
            AND	JC.host_id NOT IN 
            (
             SELECT ID FROM role_rec
@@ -166,21 +186,23 @@ USERS = '''
             AND MONTH(TODAY) < 8
             )  
         LEFT JOIN jenzprs_rec JPR ON JPR.host_id = JC.host_id
-      
-        LEFT JOIN job_rec title1 ON title1.id = JC.host_id 
-           AND title1.title_rank = 1
-           AND (title1.end_date IS NULL OR title1.end_date > current) 
-           AND title1.job_title IS NOT NULL
+    
+        JOIN job_rec JR on JR.id = JC.HOST_ID
+            AND (JR.end_date is null or JR.end_DATE > TODAY)
+            AND JR.title_rank = 1
+              
      
         LEFT JOIN prog_enr_rec TLE ON TLE.id = JC.host_id
            AND TLE.acst in ('GOOD', 'GRAD')
            AND TLE.tle = 'Y'
+           
+           order by lastname
     '''
 
-ENROLLMENTS = '''      SELECT 
+ENROLLMENTS = '''     SELECT 
         'Main' campus, TRIM(JDPT.descr) school, 
         TRIM(JDPT.descr) institutionDepartment, 
-        TRIM(JTRM.descr) term, 
+             TRIM(sr.sess)||' '||sr.yr||' '||sr.subsess term,
         TRIM(JDPT.dept_code) department, 
         TRIM(JCR.course_code) course, TRIM(JCR.sec) section, 
         TRIM(JPR.e_mail) email, TRIM(IR.firstname) firstName,
@@ -194,7 +216,7 @@ ENROLLMENTS = '''      SELECT
     
          IR.id sisUserId,
          '' includedInCourseFee, '' studentFullPartTimeStatus, 
-         '' creditHours
+           SR.hrs creditHours
     
     FROM
         jenzcrp_rec JCP
@@ -202,8 +224,10 @@ ENROLLMENTS = '''      SELECT
         jenzcrs_rec JCR ON JCP.course_code = JCR.course_code
         AND JCP.sec = JCR.sec
         AND JCP.term_code = JCR.term_code
+        --and JCP.status_code = "1PR"
     JOIN
         jenztrm_rec JTRM ON JTRM.term_code = JCR.term_code   
+        ----NORMAL QUERY TIME FRAME
         AND
         JTRM.end_date > TODAY
         AND
@@ -231,7 +255,7 @@ ENROLLMENTS = '''      SELECT
     SELECT
         'Main' campus, TRIM(dt.txt) school, 
         TRIM(dt.txt) institutionDepartment, 
-        TRIM(sr.sess)||' '||sr.yr||' '||TRIM(cr.prog) term, 
+           TRIM(sr.sess)||' '||sr.yr||' '||TRIM(sr.subsess) term, 
         TRIM(dt.dept) department, 
         TRIM(sr.crs_no)||' ('||TRIM(sr.cat)||')'  course, 
         TRIM(sr.sec_no) section, 
@@ -240,7 +264,8 @@ ENROLLMENTS = '''      SELECT
         TRIM(ir.middlename) middlename, TRIM(ir.lastname) lastname,
         "teacher" userRole, 
         ir.id sisUserId,
-        '' includedInCourseFee, '' studentFullPartTimeStatus, '' creditHours
+        '' includedInCourseFee, '' studentFullPartTimeStatus, 
+        sr.hrs creditHours
     
     FROM
         sec_rec sr
@@ -249,7 +274,9 @@ ENROLLMENTS = '''      SELECT
     ON cr.crs_no = sr.crs_no
         AND cr.cat = sr.cat
         AND sr.stat = 'X'
-        AND sr.end_date > TODAY
+           --NORMAL QUERY TIME FRAME
+         AND sr.end_date > TODAY
+        
         AND trim(cr.prog) NOT IN ('PRDV','PARA','KUSD') 
     JOIN 
         id_rec ir ON ir.id = sr.fac_id 

@@ -7,11 +7,17 @@ import pysftp
 import sys
 import shutil
 import zipfile
+import os.path
+import datetime
 
+from datetime import date, timedelta, datetime
+
+from os import path
 
 from django.conf import settings
 from djimix.core.utils import get_connection
 from djimix.core.utils import xsql
+from django.core.cache import cache
 from djtools.utils.mail import send_mail
 
 from djmapache.sql.barnesandnoble.crs_enr_sql import COURSES, USERS, \
@@ -42,6 +48,13 @@ FROM = settings.BARNESNOBLE_FROM_EMAIL
 SUBJECT = "[Barnes & Noble] upload {status}".format
 
 
+def fn_format_date(date):
+    if len(date) == 10:
+        ret = date[6:] + "-" + date[:2] + '-' + date[3:5]
+    else:
+        ret = ""
+    return ret
+
 def main():
     """Barnes and Noble Upload."""
     ###########################################################################
@@ -68,13 +81,18 @@ def main():
     # bn_usr_fil = settings.BARNES_N_NOBLE_CSV_OUTPUT + "users.csv"
     # bn_zip_fil = settings.BARNES_N_NOBLE_CSV_OUTPUT + "carthage_bn"
 
+    """To get the last query date from cache"""
+    last_sql_date = cache.get('BN_Sql_date')
+    print(last_sql_date)
+
     bn_course_file = "courses.csv"
     bn_enr_fil = "enrollments.csv"
     bn_usr_fil = "users.csv"
-    bn_zip_fil = "carthage_bn.zip"
+    bn_zip_fil = "carthage_bncroster.zip"
 
     # print(settings.BARNES_N_NOBLE_CSV_OUTPUT + bn_zip_fil)
-    os.remove(settings.BARNES_N_NOBLE_CSV_OUTPUT + bn_zip_fil)
+    if path.exists(settings.BARNES_N_NOBLE_CSV_OUTPUT + bn_zip_fil):
+        os.remove(settings.BARNES_N_NOBLE_CSV_OUTPUT + bn_zip_fil)
 
     """Create the headers for the three files"""
     fil = open(bn_course_file, 'w')
@@ -117,10 +135,18 @@ def main():
         # Create the txt file
         # print(EARL)
 
+        # print(settings.BARNESNOBLE_AIP_HOST)
+        # print(settings.BARNESNOBLE_AIP_USER)
+        # print(settings.BARNESNOBLE_AIP_PORT)
+        # print(settings.BARNESNOBLE_AIP_HOME)
+        # print(settings.BARNESNOBLE_AIP_DATA)
+        # print(settings.BARNESNOBLE_AIP_KEY)
+
         crs_qry = COURSES
 
         connection = get_connection(EARL)
         # connection closes when exiting the 'with' block
+        blank = ""
         with connection:
             data_result = xsql(
                 crs_qry, connection, key=settings.INFORMIX_DEBUG
@@ -139,36 +165,39 @@ def main():
             else:
                 # print(ret)
                 cnt = 1
-                print("Open file 1")
+
+                # print("Open file 1")
                 fil = open(bn_course_file, 'a')
                 for row in ret:
                     # fil.write(row)
-                    campus = '"' + row[1] + '"'
-                    school = '"' + row[2] + '"'
+                    campus = '"' + row[0] + '"'
+                    # school = '"' + row[1] + '"'
+                    school = '"' + blank + '"'
                     institutionDepartment = row[2]
                     term = '"' + row[3] + '"'
                     department = '"' + row[4] + '"'
                     course = '"' + row[5] + '"'
                     SectionCode  = '"' + row[6] + '"'
                     campusTitle = '"' + row[7] + '"'
-                    schoolTitle  = '"' + row[8] + '"'
+                    # schoolTitle  = '"' + row[8] + '"'
+                    schoolTitle  = '"' + blank + '"'
                     institutionDepartmentTitle = '"' + row[9] + '"'
-                    courseTitle = '"' + row[10] + '"'
+                    courseTitle = '"' + row[10].strip() + '"'
                     institutionCourseCode = '"' + row[11] + '"'
                     institutionClassCode = '"' + row[12] + '"'
                     institutionSubjectCodes = '"' + row[13] + '"'
-                    institutionSubjectsTitle = '"' + row[14] + '"'
+                    institutionSubjectsTitle = '"' + row[14].strip() + '"'
                     crn = '"' + row[15] + '"'
                     termTitle = '"' + row[16] + '"'
                     termType = '"' + row[17] + '"'
-                    termStartDate = '"' + row[18] + '"'
-                    termEndDate = '"' + row[19] + '"'
-                    sectionStartDate = '"' + row[20] + '"'
-                    sectionEndDate = '"' + row[21] + '"'
+                    termStartDate = '"' + fn_format_date(row[18]) + '"'
+                    termEndDate = '"' + fn_format_date(row[19]) + '"'
+                    sectionStartDate = '"' + fn_format_date(row[20]) + '"'
+                    sectionEndDate = '"' + fn_format_date(row[21]) + '"'
                     classGroupId  = '"' + row[22] + '"'
                     estimatedEnrollment  =  str(row[23])
 
-                    lin = str(cnt) + "," + school + "," + \
+                    lin = str(cnt) + "," + campus + "," + school + "," + \
                         institutionDepartment + "," + term + "," + \
                         department + "," + course + "," + SectionCode + "," + \
                         campusTitle + "," + schoolTitle + "," + \
@@ -184,7 +213,7 @@ def main():
                     fil.write(lin)
                     cnt = cnt + 1
                 fil.close()
-                print("Close file 1")
+                # print("Close file 1")
 
 
         connection = get_connection(EARL)
@@ -207,19 +236,19 @@ def main():
             else:
                 # print(ret)
                 cnt = 1
-                print("Open file 2")
+                # print("Open file 2")
 
                 fil2 = open(bn_usr_fil, 'a')
                 for row in ret:
                     # print(row)
                     campus = '"' + row[0] + '"'
-                    school = '"' + row[1] + '"'
+                    school = '"' + blank + '"'
                     email = '"' + row[2] + '"'
                     firstname = '"' + row[3] + '"'
                     middlename = '"' + row[4] + '"'
                     lastname = '"' + row[5] + '"'
                     role = '"' + row[6].strip() + '"'
-                    username = '"' + row[7] + '"'
+                    username = '"' + str(row[8]) + '"'
 
                     lin = str(cnt) + "," + campus + "," + school + "," + \
                           email + "," + firstname + "," + \
@@ -231,7 +260,7 @@ def main():
                     fil2.write(lin)
                     cnt = cnt + 1
                 fil2.close()
-                print("Close file 2")
+                # print("Close file 2")
 
 
 
@@ -255,12 +284,12 @@ def main():
             else:
                 # print(ret)
                 cnt = 1
-                print("Open file 3")
+                # print("Open file 3")
                 fil3 = open(bn_enr_fil, 'a')
                 for row in ret:
                     # print(row)
                     campus = '"' + row[0] + '"'
-                    school = '"' + row[1] + '"'
+                    school = '"' + blank + '"'
                     inst_dept = '"' + row[2] + '"'
                     term = '"' + row[3] + '"'
                     dept = '"' + row[4] + '"'
@@ -275,7 +304,7 @@ def main():
                     userid = '"' + str(row[12]) + '"'
                     includeinfee = '"' + row[13] + '"'
                     fulltimestatus = '"' + row[14] + '"'
-                    credit_hours = '"' + row[15] + '"'
+                    credit_hours = '"' + str(row[15]) + '"'
 
                     lin = str(cnt) + "," + campus + "," + school + "," + \
                           inst_dept + "," + term + "," + \
@@ -284,31 +313,115 @@ def main():
                           firstname + "," + middlename + "," + \
                           lastname + "," + role + "," + userid + "," + \
                           includeinfee + "," + fulltimestatus + "," + \
-                          credit_hours + "," + userid + "\n"
+                          credit_hours +  "\n"
 
                     # print(lin)
                     fil3.write(lin)
                     cnt = cnt + 1
                 fil3.close()
-                print("Close file 1")
+                # print("Close file 1")
 
-        print(bn_zip_fil)
-        print('creating archive')
+        # os.remove(bn_zip_fil)
+
+        # print(bn_zip_fil)
+        # print('creating archive')
         zf = zipfile.ZipFile(bn_zip_fil, mode='w')
 
-        print('add files')
+        # print('add files')
 
         zf.write(bn_course_file)
         zf.write(bn_usr_fil)
         zf.write(bn_enr_fil)
 
         print("Move zip file")
-        shutil.move(bn_zip_fil,settings.BARNES_N_NOBLE_CSV_OUTPUT)
+        shutil.move(bn_zip_fil, settings.BARNES_N_NOBLE_CSV_OUTPUT)
 
         print("Remove temp csv files")
         os.remove(bn_usr_fil)
         os.remove(bn_course_file)
         os.remove(bn_enr_fil)
+
+        """PROBLEM HERE WITH THE SFTP CONNECTION NOT USING PASSWORD
+           the method used for schoology and adp not working"""
+
+        cnopts = pysftp.CnOpts()
+        cnopts.hostkeys = None
+        xtrnl_connection = {
+            'host': settings.BARNESNOBLE_AIP_HOST,
+            'username': settings.BARNESNOBLE_AIP_USER,
+            'port': settings.BARNESNOBLE_AIP_PORT,
+            'private_key': settings.BARNESNOBLE_AIP_KEY,
+            'cnopts': cnopts,
+        }
+
+        try:
+            with pysftp.Connection(**xtrnl_connection) as sftp:
+
+                sftp.cwd('inbox')
+                print("Connected")
+
+                x = sftp.cwd
+                print(x)
+                
+                for attr in sftp.listdir_attr():
+                    print(attr.filename, attr)
+
+                remotepath = sftp.listdir()
+                print(remotepath)
+
+                phile = os.path.join(settings.BARNES_N_NOBLE_CSV_OUTPUT, + bn_zip_fil)
+                print("Put " + phile)
+
+                # sftp.put(phile, preserve_mtime=True)
+                # # deletes original file from our server
+
+
+                for attr in sftp.listdir_attr():
+                    print(attr.filename, attr)
+
+                sftp.close()
+
+        except Exception as error:
+            print("Unable to PUT settings.BARNES_N_NOBLE_CSV_OUTPUT + "
+                  "bn_zip_fil to Barnes and Noble "
+                  "server.\n\n{0}".format(error))
+
+
+        # xtrnl_connection1['private_key'] = settings.BARNESNOBLE1_PRIVATE_KEY
+        # # 'private_key': = settings.BARNESNOBLE1_PRIVATE_KEY,
+        #
+        # try:
+        #     with pysftp.Connection(**xtrnl_connection1) as sftp:
+        #         sftp.chdir("/bned-sis-oneroster-mailbox-prod/data/IC90/")
+        #         # Remote Path is the ADP server and once logged in we fetch
+        #         # directory listing
+        #         remotepath = sftp.listdir()
+        #         print(remotepath)
+        #         # if DEBUG:
+        #         #     print(file_exencrs)
+        #         # sftp.put(file_exencrs, preserve_mtime=True)
+        #         # # deletes original file from our server
+        #         # os.remove(file_exencrs)
+        # except Exception as error:
+        #     success = False
+        #     body = """
+        #            Unable to PUT EXENCRS.csv to Barnes and Noble server.\n\n{0}
+        #        """.format(error)
+        #     send_mail(
+        #         None,
+        #         TO,
+        #         SUBJECT(status='failed'),
+        #         FROM,
+        #         'email.html',
+        #         body,
+        #     )
+        #     if DEBUG:
+        #         print(error)
+
+        #To set a new date in cache
+        a = datetime.now()
+        last_sql_date = a.strftime('%Y-%m-%d %H:%M:%S')
+        cache.set('BN_Sql_date', last_sql_date)
 
     except Exception as e:
         print("Error in main:  " + str(e))
@@ -320,19 +433,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
-    # args = parser.parse_args()
-    # test = args.test
-    # database = args.database
-
-    # if not database:
-    #     print("mandatory option missing: database name\n")
-    #     parser.print_help()
-    #     exit(-1)
-    # else:
-    #     database = database.lower()
-    #
-    # if database != 'cars' and database != 'train' and database != 'sandbox':
-    #     print("database must be: 'cars' or 'train' or 'sandbox'\n")
-    #     parser.print_help()
-    #     exit(-1)
+    sys.exit(main())
