@@ -89,6 +89,7 @@ def main():
     bn_enr_fil = "enrollments.csv"
     bn_usr_fil = "users.csv"
     bn_zip_fil = "carthage_bncroster.zip"
+     # /data2/www/data/barnesandnoble/enrollments/carthage_bncroster.zip""
 
     # print(settings.BARNES_N_NOBLE_CSV_OUTPUT + bn_zip_fil)
     if path.exists(settings.BARNES_N_NOBLE_CSV_OUTPUT + bn_zip_fil):
@@ -131,16 +132,6 @@ def main():
         # else:
         #     print("database must be: 'cars' or 'train'")
         #     exit(-1)
-        # # --------------------------
-        # Create the txt file
-        # print(EARL)
-
-        # print(settings.BARNESNOBLE_AIP_HOST)
-        # print(settings.BARNESNOBLE_AIP_USER)
-        # print(settings.BARNESNOBLE_AIP_PORT)
-        # print(settings.BARNESNOBLE_AIP_HOME)
-        # print(settings.BARNESNOBLE_AIP_DATA)
-        # print(settings.BARNESNOBLE_AIP_KEY)
 
         crs_qry = COURSES
 
@@ -154,14 +145,13 @@ def main():
 
             ret = list(data_result)
             if ret is None:
-                print("No result")
-                # SUBJECT = "[Adirondack] Application failed"
-                # BODY = "SQL Query returned no data."
-                # send_mail(
-                #     None, [settings.ADIRONDACK_TO_EMAIL, ], SUBJECT,
-                #     settings.ADIRONDACK_FROM_EMAIL, 'email/default.html',
-                #     BODY, [settings.ADMINS[0][1], ]
-                # )
+                # print("No result")
+                SUBJECT = "[Barnes and Noble Crs Enr] Application failed"
+                BODY = "Course Query returned no data."
+                send_mail(
+                    None, settings.BARNES_N_NOBLE_TO_EMAIL, SUBJECT,
+                    settings.BARNES_N_NOBLE_FROM_EMAIL, 'email.html', BODY, )
+
             else:
                 # print(ret)
                 cnt = 1
@@ -225,14 +215,13 @@ def main():
 
             ret = list(data_result)
             if ret is None:
-                print("No result")
-                # SUBJECT = "[Adirondack] Application failed"
-                # BODY = "SQL Query returned no data."
-                # send_mail(
-                #     None, [settings.ADIRONDACK_TO_EMAIL, ], SUBJECT,
-                #     settings.ADIRONDACK_FROM_EMAIL, 'email/default.html',
-                #     BODY, [settings.ADMINS[0][1], ]
-                # )
+                # print("No result")
+                SUBJECT = "[Barnes and Noble Crs Enr] Application failed"
+                BODY = "User Query returned no data."
+                send_mail(
+                    None, settings.BARNES_N_NOBLE_TO_EMAIL, SUBJECT,
+                    settings.BARNES_N_NOBLE_FROM_EMAIL, 'email.html', BODY, )
+
             else:
                 # print(ret)
                 cnt = 1
@@ -263,7 +252,7 @@ def main():
                 # print("Close file 2")
 
 
-
+        """Connect to Database"""
         connection = get_connection(EARL)
         # connection closes when exiting the 'with' block
         with connection:
@@ -273,14 +262,13 @@ def main():
 
             ret = list(data_result)
             if ret is None:
-                print("No result")
-                # SUBJECT = "[Adirondack] Application failed"
-                # BODY = "SQL Query returned no data."
-                # send_mail(
-                #     None, [settings.ADIRONDACK_TO_EMAIL, ], SUBJECT,
-                #     settings.ADIRONDACK_FROM_EMAIL, 'email/default.html',
-                #     BODY, [settings.ADMINS[0][1], ]
-                # )
+                # print("No result")
+                SUBJECT = "[Barnes and Noble Crs Enr] Application failed"
+                BODY = "ENROLLMENTS Query returned no data."
+                send_mail(
+                    None, settings.BARNES_N_NOBLE_TO_EMAIL, SUBJECT,
+                    settings.BARNES_N_NOBLE_FROM_EMAIL, 'email.html', BODY, )
+
             else:
                 # print(ret)
                 cnt = 1
@@ -321,29 +309,18 @@ def main():
                 fil3.close()
                 # print("Close file 1")
 
-        # os.remove(bn_zip_fil)
 
-        # print(bn_zip_fil)
-        # print('creating archive')
+        """Create Archive"""
         zf = zipfile.ZipFile(bn_zip_fil, mode='w')
-
-        # print('add files')
 
         zf.write(bn_course_file)
         zf.write(bn_usr_fil)
         zf.write(bn_enr_fil)
 
-        print("Move zip file")
+        """Move Zip File"""
         shutil.move(bn_zip_fil, settings.BARNES_N_NOBLE_CSV_OUTPUT)
 
-        print("Remove temp csv files")
-        os.remove(bn_usr_fil)
-        os.remove(bn_course_file)
-        os.remove(bn_enr_fil)
-
-        """PROBLEM HERE WITH THE SFTP CONNECTION NOT USING PASSWORD
-           the method used for schoology and adp not working"""
-
+        """Send the file..."""
         cnopts = pysftp.CnOpts()
         cnopts.hostkeys = None
         xtrnl_connection = {
@@ -356,67 +333,38 @@ def main():
 
         try:
             with pysftp.Connection(**xtrnl_connection) as sftp:
-
                 sftp.cwd('inbox')
-                print("Connected")
-
-                x = sftp.cwd
-                print(x)
-                
-                for attr in sftp.listdir_attr():
-                    print(attr.filename, attr)
+                # print("Connected")
 
                 remotepath = sftp.listdir()
-                print(remotepath)
+                # print(remotepath)
 
-                phile = os.path.join(settings.BARNES_N_NOBLE_CSV_OUTPUT, + bn_zip_fil)
-                print("Put " + phile)
-
-                # sftp.put(phile, preserve_mtime=True)
-                # # deletes original file from our server
-
-
-                for attr in sftp.listdir_attr():
-                    print(attr.filename, attr)
+                phile = os.path.join(settings.BARNES_N_NOBLE_CSV_OUTPUT
+                                     + bn_zip_fil)
+                # print("Put " + phile)
+                sftp.put(phile)
 
                 sftp.close()
+                # print("Remove temp csv files")
+                os.remove(bn_usr_fil)
+                os.remove(bn_course_file)
+                os.remove(bn_enr_fil)
 
         except Exception as error:
-            print("Unable to PUT settings.BARNES_N_NOBLE_CSV_OUTPUT + "
-                  "bn_zip_fil to Barnes and Noble "
-                  "server.\n\n{0}".format(error))
+            # print("Unable to PUT settings.BARNES_N_NOBLE_CSV_OUTPUT + "
+            #       "bn_zip_fil to Barnes and Noble "
+            #       "server.\n\n{0}".format(error))
+            SUBJECT = "[Barnes and Noble Crs Enr] Application failed"
+            BODY = "Unable to PUT settings.BARNES_N_NOBLE_CSV_OUTPUT " \
+                   + bn_zip_fil \
+                   + " to Barnes and Noble server.\n\n{0}".format(error)
 
+            send_mail(None, TO, SUBJECT(status='failed'), FROM,
+                'email.html', body, )
 
-        # xtrnl_connection1['private_key'] = settings.BARNESNOBLE1_PRIVATE_KEY
-        # # 'private_key': = settings.BARNESNOBLE1_PRIVATE_KEY,
-        #
-        # try:
-        #     with pysftp.Connection(**xtrnl_connection1) as sftp:
-        #         sftp.chdir("/bned-sis-oneroster-mailbox-prod/data/IC90/")
-        #         # Remote Path is the ADP server and once logged in we fetch
-        #         # directory listing
-        #         remotepath = sftp.listdir()
-        #         print(remotepath)
-        #         # if DEBUG:
-        #         #     print(file_exencrs)
-        #         # sftp.put(file_exencrs, preserve_mtime=True)
-        #         # # deletes original file from our server
-        #         # os.remove(file_exencrs)
-        # except Exception as error:
-        #     success = False
-        #     body = """
-        #            Unable to PUT EXENCRS.csv to Barnes and Noble server.\n\n{0}
-        #        """.format(error)
-        #     send_mail(
-        #         None,
-        #         TO,
-        #         SUBJECT(status='failed'),
-        #         FROM,
-        #         'email.html',
-        #         body,
-        #     )
-        #     if DEBUG:
-        #         print(error)
+            send_mail(
+                None, settings.BARNES_N_NOBLE_TO_EMAIL, SUBJECT,
+                settings.BARNES_N_NOBLE_FROM_EMAIL, 'email.html', BODY, )
 
         #To set a new date in cache
         a = datetime.now()
@@ -425,12 +373,11 @@ def main():
 
     except Exception as e:
         print("Error in main:  " + str(e))
-        # fn_write_error("Error in barnesandnoble_crs_enr.py - Main: "
-        #                + repr(e))
-        # fn_send_mail(settings.BB_SKY_TO_EMAIL,
-        #              settings.BB_SKY_FROM_EMAIL, "SKY API ERROR", "Error in "
-        #                         "barnesandnoble_crs_enr.py - for: " + + repr(e))
-
+        SUBJECT = "[Barnes and Noble Crs Enr] Application failed"
+        BODY = "Error"
+        send_mail(
+            None, settings.BARNES_N_NOBLE_TO_EMAIL, SUBJECT,
+            settings.BARNES_N_NOBLE_FROM_EMAIL, 'email.html', BODY, )
 
 if __name__ == "__main__":
     sys.exit(main())
