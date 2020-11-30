@@ -6,9 +6,7 @@ import csv
 import django
 import os
 import pysftp
-import shutil
 import sys
-import time
 
 from django.conf import settings
 from djimix.core.utils import get_connection
@@ -88,7 +86,7 @@ def file_upload(phile):
 
 
 def main():
-    """package concierge upload."""
+    """Package concierge upload."""
     # determines which database is being called from the command line
     if database == 'cars':
         earl = settings.INFORMIX_ODBC
@@ -97,8 +95,6 @@ def main():
     else:
         print('invalid database name: {0}'.format(database))
         sys.exit()
-    # formatting date and time string
-    datetimestr = time.strftime('%Y%m%d%H%M%S')
     phile = os.path.join(
         settings.BASE_DIR, 'sql/concierge/students.sql',
     )
