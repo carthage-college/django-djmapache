@@ -66,9 +66,16 @@ DATABASES = {
         'PORT': '3306',
         'NAME': 'django_djmapache',
         'ENGINE': 'django.db.backends.mysql',
-        #'ENGINE': 'django.db.backends.dummy',
         'USER': '',
-        'PASSWORD': ''
+        'PASSWORD': '',
+    },
+    'rt4': {
+        'HOST': '',
+        'PORT': '3306',
+        'NAME': 'rt4',
+        'ENGINE': 'django.db.backends.mysql',
+        'USER': '',
+        'PASSWORD': '',
     },
 }
 INSTALLED_APPS = [
