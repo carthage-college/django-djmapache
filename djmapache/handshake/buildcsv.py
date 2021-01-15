@@ -254,6 +254,7 @@ def main():
             try:
                 client.upload_file(Filename=local_file_name, Bucket=bucket_name,
                                    Key=key_name)
+                # print("Upload file")
                 # THIS IS WHAT IT SHOULD LOOK LIKE - IT WORKS DO NOT LOSE!
                 # client.upload_file(Filename='20190404_users.csv',
                 #            Bucket='handshake-importer-uploads',
