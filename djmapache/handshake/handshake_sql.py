@@ -347,5 +347,5 @@ FROM
         LEFT JOIN (select conc, txt from conc_table
             WHERE LEFT(cip_no,2) in ('51')) CT3
             ON CT3.conc = PER.conc3
- 
+       
 '''
