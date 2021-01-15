@@ -321,16 +321,20 @@ FROM
         -- Need to redo this, find MAX ACR End date and gpa associated for each
         -- student
         
-        JOIN
-        (select SAR.prog, SAR.id, SAR.subprog, SAR.cum_gpa, 
-            SAR.yr, SAR.sess, SAR.reg_upd_date ,
-            CSV.subsess
-            from stu_acad_rec SAR 
-            JOIN  cursessyr_vw CSV
-            on CSV.yr= SAR.yr
-            and CSV.sess = SAR.sess
-            and CSV.prog = SAR.prog
-            and trim(CSV.subsess) = '') SAR
+       JOIN
+        (select SAR.id, SAR.cum_gpa, SAR.yr, SAR.sess, 
+            max(ACR.beg_date) as latest_sess_beg_date,
+            max(SAR.reg_upd_date) as MaxUpdate
+            from stu_acad_rec SAR
+            join (
+               select prog, yr, sess, beg_date, end_date, subsess
+                from acad_cal_rec
+                where beg_date <= TODAY
+                and end_date >= TODAY) ACR
+             on ACR.yr = SAR.yr
+             and ACR.sess = SAR.sess
+             and nvl(ACR.subsess,"") = ""
+            group by SAR.id, SAR.cum_gpa, SAR.yr, SAR.sess) SAR
             on SAR.id = PER.id
          
               
