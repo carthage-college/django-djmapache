@@ -82,8 +82,9 @@ def main():
     # bn_zip_fil = settings.BARNES_N_NOBLE_CSV_OUTPUT + "carthage_bn"
 
     """To get the last query date from cache"""
+
     last_sql_date = cache.get('BN_Sql_date')
-    print(last_sql_date)
+    # print(last_sql_date)
 
     bn_course_file = "courses.csv"
     bn_enr_fil = "enrollments.csv"
@@ -153,7 +154,7 @@ def main():
                     settings.BARNES_N_NOBLE_FROM_EMAIL, 'email.html', BODY, )
 
             else:
-                # print(ret)
+                # print(ret)cd
                 cnt = 1
 
                 # print("Open file 1")
